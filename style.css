@@ -2,61 +2,115 @@
   box-sizing: border-box;
 }
 
+/* Bright, friendly visual system */
+:root {
+  color-scheme: light;
+  --ink: #18304b;
+  --muted: #718198;
+  --paper: #f4f8ff;
+  --white: #ffffff;
+  --blue: #4669f2;
+  --violet: #8758e8;
+  --mint: #d8f7e9;
+  --line: #e6ecf6;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f5f3ef;
-  color: #242424;
+  font-family: "Nunito", "Avenir Next", system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .container {
-  max-width: 650px;
+  position: relative;
+  isolation: isolate;
+  max-width: 720px;
   margin: 0 auto;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 32px;
+  align-items: flex-start;
+  padding: clamp(32px, 8vw, 80px);
+}
+
+.container::before,
+.container::after {
+  position: fixed;
+  z-index: -1;
+  content: "";
+  border-radius: 50%;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.container::before {
+  width: 340px;
+  height: 340px;
+  top: -110px;
+  right: max(-100px, calc((100vw - 1100px) / 2));
+  background: radial-gradient(circle, #d9e2ff 0%, #e9edff 58%, transparent 70%);
+}
+
+.container::after {
+  width: 280px;
+  height: 280px;
+  bottom: -120px;
+  left: max(-95px, calc((100vw - 1100px) / 2));
+  background: radial-gradient(circle, #d5f8e9 0%, #e9fbf3 58%, transparent 72%);
 }
 
 .logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #242424;
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #5579ff, #8c5be9);
   color: white;
   display: grid;
   place-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
+  font-size: 24px;
+  box-shadow: 0 14px 30px #6379e94a, inset 0 1px 0 #ffffff70;
+  transform: rotate(-5deg);
 }
 
 h1 {
-  font-size: 48px;
+  font-size: clamp(48px, 8vw, 72px);
   line-height: 1.05;
-  margin: 0 0 20px;
+  letter-spacing: -0.055em;
+  margin: 0 0 18px;
 }
 
 p {
-  font-size: 20px;
-  line-height: 1.5;
+  font-size: clamp(18px, 2.5vw, 21px);
+  line-height: 1.65;
   max-width: 520px;
-  margin-bottom: 32px;
+  margin: 0 0 34px;
+  color: #5e708a;
 }
 
 button {
   width: fit-content;
-  padding: 14px 22px;
+  padding: 15px 24px;
   border: 0;
-  border-radius: 12px;
-  background: #242424;
+  border-radius: 16px;
+  background: linear-gradient(110deg, var(--blue), var(--violet));
   color: white;
   font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 12px 24px #536fe64a;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
 button:hover {
-  opacity: 0.8;
+  filter: saturate(1.12) brightness(1.04);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px #536fe65c;
 }
+
+button:active { transform: translateY(0) scale(.98); }
 
 /* Shared styles */
 
@@ -90,17 +144,19 @@ input:focus-visible {
 /* Messaging app */
 
 .app-body {
-  background: #f9f5eb;
+  background: radial-gradient(ellipse at 50% -15%, #e2eaff 0, #f4f8ff 48%, #f1fbf7 100%);
   min-height: 100vh;
 }
 
 .messages-app {
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 48px 20px 32px;
-  background: #fff;
+  padding: 40px 24px 36px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 0 70px #5069a20d;
+  backdrop-filter: blur(18px);
 }
 
 .messages-header {
@@ -108,11 +164,11 @@ input:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 4px 24px;
+  margin: 0 2px 28px;
 }
 
 .messages-header h1 {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   line-height: 1.3;
   margin: 0;
@@ -120,7 +176,7 @@ input:focus-visible {
 
 .subtitle {
   font-size: 13px;
-  color: #777;
+  color: var(--muted);
   margin: 4px 0 0;
 }
 
@@ -129,11 +185,15 @@ input:focus-visible {
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: #1a1a1a;
+  background: linear-gradient(145deg, #5579ff, #865be8);
   color: white;
   font-size: 19px;
   cursor: pointer;
+  box-shadow: 0 7px 16px #5579ff3b;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
+
+.icon-button:hover { transform: translateY(-2px) rotate(-5deg); box-shadow: 0 10px 18px #5579ff55; }
 
 .search-box {
   display: flex;
@@ -142,10 +202,14 @@ input:focus-visible {
   padding: 0 16px;
   height: 46px;
   border-radius: 30px;
-  background: #f9f5eb;
-  color: #777;
-  margin-bottom: 16px;
+  background: #f4f7ff;
+  color: #8b9bb2;
+  margin-bottom: 22px;
+  border: 1px solid #e9eef9;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
+
+.search-box:focus-within { background: #fff; border-color: #9bafff; box-shadow: 0 0 0 4px #6d83ff16; }
 
 .search-box input {
   width: 100%;
@@ -153,11 +217,11 @@ input:focus-visible {
   border: none;
   outline: none;
   background: transparent;
-  color: #1a1a1a;
+  color: var(--ink);
 }
 
 .search-box input:focus-visible {
-  outline: 2px solid #8b684c;
+  outline: 2px solid #8298ff;
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -171,16 +235,20 @@ input:focus-visible {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 0;
+  padding: 17px 12px;
+  margin: 0 -12px;
   min-width: 0;
   text-decoration: none;
   color: inherit;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-  transition: background 150ms ease;
+  border-bottom: 1px solid var(--line);
+  border-radius: 18px;
+  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .conversation:hover {
-  background: #fcfaf6;
+  background: linear-gradient(100deg, #f4f7ff, #f7fffb);
+  transform: translateX(3px);
+  box-shadow: 0 8px 22px #3e58940b;
 }
 
 .avatar {
@@ -189,23 +257,31 @@ input:focus-visible {
   flex: 0 0 48px;
   display: grid;
   place-items: center;
-  border: 2px solid #1a1a1a;
+  border: 0;
   border-radius: 50%;
-  background: #f9f5eb;
+  background: #e8edff;
+  color: #415ed3;
   font-size: 17px;
   font-weight: 900;
+  box-shadow: inset 0 0 0 1px #fff, 0 4px 10px #324c8512;
+  transition: transform 180ms ease;
 }
 
+.conversation:hover .avatar { transform: scale(1.08) rotate(-4deg); }
+
 .avatar-sam {
-  background: #f5e5d8;
+  background: #ffe3d7;
+  color: #b54f42;
 }
 
 .avatar-mum {
-  background: #e9efdf;
+  background: #d8f7e9;
+  color: #248360;
 }
 
 .avatar-alex {
-  background: #e9e5f3;
+  background: #eee2ff;
+  color: #7543bd;
 }
 
 .conversation-info {
@@ -226,8 +302,8 @@ input:focus-visible {
 }
 
 .tag {
-  background: #f8e8dc;
-  color: #a45d36;
+  background: #eee9ff;
+  color: #714ed0;
   padding: 3px 8px;
   border-radius: 20px;
   font-size: 10px;
@@ -237,7 +313,7 @@ input:focus-visible {
 
 .time {
   margin-left: auto;
-  color: #888;
+  color: #91a0b4;
   font-size: 11px;
   white-space: nowrap;
 }
@@ -247,7 +323,7 @@ input:focus-visible {
   white-space: nowrap;
   text-overflow: ellipsis;
   margin: 5px 0 0;
-  color: #777;
+  color: #718198;
   font-size: 13px;
   font-weight: 600;
 }
@@ -255,8 +331,14 @@ input:focus-visible {
 .app-footer {
   text-align: center;
   font-size: 12px;
-  color: #888;
+  color: #8796aa;
   margin-top: 32px;
+}
+
+@media (max-width: 520px) {
+  .messages-app { padding: 30px 20px 28px; }
+  .conversation { gap: 13px; }
+  .tag { padding: 3px 6px; font-size: 9px; }
 }
 
 /* Respect reduced-motion preferences */
