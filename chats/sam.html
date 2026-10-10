@@ -15,531 +15,7 @@
     rel="stylesheet"
   >
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
 
-    body.app-body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Nunito", sans-serif;
-      background: #F9F5EB;
-      color: #1A1A1A;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    .chat-app {
-      width: 100%;
-      max-width: 390px;
-      height: 100vh;
-      height: 100dvh;
-      min-height: 500px;
-      margin: 0 auto;
-      background: #F9F5EB;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* Header */
-
-    .chat-header {
-      flex-shrink: 0;
-      height: 95px;
-      padding: 36px 16px 10px;
-      background: white;
-      border-bottom: 3px solid black;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 2;
-    }
-
-    .back-button {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: black;
-      color: white;
-      text-decoration: none;
-      font-size: 27px;
-      line-height: 1;
-    }
-
-    .avatar-sam {
-      width: 40px;
-      height: 40px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: #C97A4B;
-      border: 2px solid black;
-      color: white;
-      font-size: 16px;
-      font-weight: 900;
-    }
-
-    .contact-details {
-      min-width: 0;
-    }
-
-    .contact-name {
-      font-size: 15px;
-      font-weight: 900;
-    }
-
-    .contact-status {
-      margin-top: 3px;
-      color: rgba(0, 0, 0, 0.5);
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .contact-status.typing {
-      color: #278447;
-      font-weight: 800;
-    }
-
-    .contact-status.typing::after {
-      content: "...";
-      display: inline-block;
-      width: 0;
-      overflow: hidden;
-      vertical-align: bottom;
-      animation: typing-dots 1.2s steps(4, end) infinite;
-    }
-
-    @keyframes typing-dots {
-      to {
-        width: 12px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .contact-status.typing::after {
-        animation: none;
-        width: 12px;
-      }
-    }
-
-    .more-button {
-      width: 32px;
-      height: 32px;
-      margin-left: auto;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #F9F5EB;
-      border: 2px solid black;
-      border-radius: 50%;
-      color: #1A1A1A;
-      font-size: 20px;
-    }
-
-    /* Scrollable conversation */
-
-    .chat-content {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      overscroll-behavior-y: contain;
-      padding: 20px 16px 28px;
-      scroll-behavior: smooth;
-    }
-
-    .story-label {
-      width: fit-content;
-      max-width: 100%;
-      margin: 0 auto 20px;
-      padding: 9px 16px;
-      background: white;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 999px;
-      text-align: center;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-
-    .bubble {
-      width: fit-content;
-      max-width: 90%;
-      margin: 12px 0;
-      padding: 14px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    .received {
-      margin-right: auto;
-      background: white;
-      border: 2px solid black;
-      border-radius: 20px 20px 20px 6px;
-      box-shadow: 3px 3px 0 black;
-    }
-
-    .sent {
-      margin-left: auto;
-      background: #E9EFDF;
-      border: 2px solid black;
-      border-radius: 20px 20px 6px 20px;
-      box-shadow: 3px 3px 0 #C97A4B;
-    }
-
-    .date-divider {
-      margin: 26px 0 18px;
-      text-align: center;
-      color: #66503E;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    /* Initial interaction panel */
-
-    .reply-panel {
-      flex-shrink: 0;
-      padding: 19px 16px 24px;
-      background: white;
-      border-top: 3px solid black;
-      border-radius: 24px 24px 0 0;
-    }
-
-    .reply-options {
-      display: grid;
-      gap: 12px;
-    }
-
-    .reply-button {
-      width: 100%;
-      min-height: 53px;
-      padding: 14px 16px;
-      border: 2px solid black;
-      border-radius: 999px;
-      background: white;
-      color: black;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: background-color 150ms ease,
-                  transform 150ms ease;
-    }
-
-    .reply-button.primary {
-      min-height: 60px;
-      padding: 14px 20px;
-      background: black;
-      color: white;
-      box-shadow: 4px 4px 0 #C97A4B;
-      border-color: black;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      text-align: left;
-    }
-
-    .reply-button.primary .arrow {
-      width: 28px;
-      height: 28px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-      color: black;
-      border-radius: 50%;
-      font-size: 16px;
-    }
-
-    .reply-button:hover {
-      background: #F9F5EB;
-      color: black;
-    }
-
-    .reply-button.primary:hover {
-      background: #292929;
-      color: white;
-    }
-
-    .reply-button:focus-visible,
-    .back-button:focus-visible {
-      outline: 3px solid #C97A4B;
-      outline-offset: 4px;
-    }
-
-    .reply-button:active {
-      transform: translateY(1px);
-    }
-
-    .home-indicator {
-      flex-shrink: 0;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-    }
-
-    .home-indicator span {
-      width: 120px;
-      height: 5px;
-      background: black;
-      border-radius: 999px;
-    }
-
-    /* Unlocked lesson */
-
-    .lesson {
-      margin-top: 30px;
-      padding-top: 24px;
-      border-top: 1px dashed #C9BDAA;
-    }
-
-    .lesson-heading {
-      margin: 0 0 10px;
-      font-size: 20px;
-      line-height: 1.35;
-      font-weight: 900;
-    }
-
-    .lesson-intro {
-      margin: 0 0 18px;
-      color: #66503E;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .quiz-card {
-      padding: 18px;
-      background: white;
-      border: 2px solid black;
-      border-radius: 18px;
-      box-shadow: 3px 3px 0 #C97A4B;
-    }
-
-    .quiz-label {
-      margin: 0 0 8px;
-      color: #8B5737;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-    }
-
-    .quiz-question {
-      margin: 0 0 10px;
-      font-size: 17px;
-      line-height: 1.4;
-      font-weight: 900;
-    }
-
-    .quiz-context {
-      margin: 0 0 16px;
-      color: #5F5A52;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .quiz-choices {
-      display: grid;
-      gap: 10px;
-    }
-
-    .quiz-choice {
-      width: 100%;
-      padding: 12px;
-      background: #FFFEFB;
-      border: 1.5px solid #C9BDAA;
-      border-radius: 12px;
-      color: #1A1A1A;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.5;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .quiz-choice:hover:not(:disabled) {
-      border-color: black;
-      background: #F9F5EB;
-    }
-
-    .quiz-choice:focus-visible {
-      outline: 3px solid #C97A4B;
-      outline-offset: 3px;
-    }
-
-    .quiz-choice:disabled {
-      cursor: default;
-      opacity: 1;
-    }
-
-    .quiz-choice.correct-answer {
-      border: 2px solid #486B42;
-      background: #EEF5E9;
-    }
-
-    #feedback {
-      margin-top: 14px;
-      padding: 14px;
-      background: #F9F5EB;
-      border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .back-to-messages {
-      display: block;
-      margin: 24px 0 8px;
-      color: #66503E;
-      font-size: 13px;
-      font-weight: 800;
-      text-align: center;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        scroll-behavior: auto !important;
-        transition: none !important;
-      }
-    }
-
-    /* Brighter chat theme; all existing controls and interactions stay the same. */
-    body.app-body { background: #edf3ff; color: #18304b; }
-    .chat-app {
-      max-width: 430px;
-      background: linear-gradient(180deg, #f2f6ff 0%, #f5fbff 58%, #f0fbf7 100%);
-      box-shadow: 0 0 70px #3d5c9714;
-    }
-    .chat-header {
-      height: 88px;
-      padding: 22px 18px 10px;
-      background: rgba(255,255,255,.94);
-      border-bottom: 1px solid #e3eaf8;
-      box-shadow: 0 6px 20px #294a8510;
-    }
-    .back-button {
-      background: #eef1ff;
-      color: #5369df;
-      font-weight: 700;
-      transition: transform 160ms ease, background 160ms ease;
-    }
-    .back-button:hover { transform: translateX(-2px); background: #e2e8ff; }
-    .avatar-sam {
-      background: linear-gradient(145deg, #ffb18a, #ff806f);
-      border: 2px solid white;
-      color: white;
-      box-shadow: 0 3px 10px #e9826a40;
-    }
-    .contact-name { color: #18304b; }
-    .contact-status { color: #8291a7; }
-    .contact-status.typing { color: #22956f; }
-    .more-button {
-      background: #f3f6ff;
-      border: 1px solid #e4eaf8;
-      color: #627593;
-      cursor: default;
-    }
-    .chat-content { padding: 22px 18px 30px; }
-    .story-label {
-      padding: 8px 14px;
-      background: #eef1ff;
-      border: 1px solid #e0e6ff;
-      color: #6474bd;
-      box-shadow: 0 4px 12px #536fe40b;
-    }
-    .received {
-      background: white;
-      border: 1px solid #e6ecf6;
-      border-radius: 20px 20px 20px 7px;
-      color: #304661;
-      box-shadow: 0 5px 14px #34517d12;
-    }
-    .sent {
-      background: #d9f7ea;
-      border: 1px solid #c5eddb;
-      border-radius: 20px 20px 7px 20px;
-      color: #245d4d;
-      box-shadow: 0 5px 14px #40a57b1c;
-    }
-    .date-divider { color: #788aa4; }
-    .reply-panel {
-      padding: 17px 18px 22px;
-      background: rgba(255,255,255,.96);
-      border-top: 1px solid #e3eaf8;
-      border-radius: 24px 24px 0 0;
-      box-shadow: 0 -8px 24px #36517e0d;
-    }
-    .reply-button {
-      border: 1px solid #dce4f3;
-      background: #f8faff;
-      color: #425671;
-      transition: transform 170ms ease, background 170ms ease, box-shadow 170ms ease;
-    }
-    .reply-button:hover { background: #edf2ff; color: #344d78; transform: translateY(-1px); }
-    .reply-button.primary {
-      background: linear-gradient(110deg, #4f72f4, #8159e6);
-      color: white;
-      border-color: transparent;
-      box-shadow: 0 8px 18px #6275e544;
-    }
-    .reply-button.primary:hover { background: linear-gradient(110deg, #4266ec, #754ada); color: white; }
-    .reply-button.primary .arrow { background: #ffffff2e; color: white; }
-    .reply-button:focus-visible, .back-button:focus-visible { outline-color: #8298ff; }
-    .home-indicator { background: white; }
-    .home-indicator span { background: #c7d0df; }
-    .lesson { border-top-color: #dce5f2; }
-    .lesson-heading, .quiz-question { color: #203956; }
-    .lesson-intro, .quiz-context { color: #667991; }
-    .quiz-card {
-      background: white;
-      border: 1px solid #e2eaf5;
-      border-radius: 20px;
-      box-shadow: 0 10px 24px #3e578512;
-    }
-    .quiz-label { color: #6b57ce; }
-    .quiz-choice {
-      background: #f8faff;
-      border: 1px solid #dfe7f3;
-      border-radius: 14px;
-      color: #334b67;
-      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
-    }
-    .quiz-choice:hover:not(:disabled) {
-      border-color: #879bff;
-      background: #f1f4ff;
-      transform: translateY(-1px);
-      box-shadow: 0 5px 12px #546dd315;
-    }
-    .quiz-choice:focus-visible { outline-color: #8298ff; }
-    .quiz-choice.correct-answer { border-color: #68c9a2; background: #e4f9ef; }
-    #feedback { background: #eff6ff; color: #405b7b; }
-    .back-to-messages { color: #667cc9; }
-    .back-to-messages:hover { color: #4b60b6; }
-
-    @media (max-width: 430px) {
-      .chat-app { min-height: 100dvh; }
-      .chat-header { padding-top: 16px; }
-    }
-  </style>
 </head>
 
 <body class="app-body">
@@ -555,7 +31,7 @@
         aria-label="Back to messages"
       >‹</a>
 
-      <div class="avatar-sam" aria-hidden="true">S</div>
+      <div class="chat-avatar avatar-sam" aria-hidden="true">S</div>
 
       <div class="contact-details">
         <div class="contact-name">Sam</div>
@@ -605,7 +81,6 @@
         </div>
 
         <div class="date-divider" id="dateDivider" hidden>
-          Your detective challenge
         </div>
 
         <!-- Interactive privacy quiz -->
@@ -613,7 +88,7 @@
         <section class="lesson" aria-labelledby="quizHeading">
 
           <h2 class="lesson-heading" id="quizHeading">
-            What might an app learn from your activity?
+            Online Activity Can Reveal Your Interests
           </h2>
 
           <p class="lesson-intro">
@@ -623,16 +98,9 @@
 
           <div class="quiz-card">
 
-            <p class="quiz-label">Your detective challenge</p>
-
             <h3 class="quiz-question">
               What could an app predict from this activity?
             </h3>
-
-            <p class="quiz-context">
-              Choose the answer you think makes the most sense.
-              It's okay to get it wrong.
-            </p>
 
             <div class="quiz-choices" id="quizChoices">
 
@@ -751,7 +219,6 @@
     // Hide the typing indicator until Sam starts composing a message.
     typingIndicator.hidden = true;
 
-    // Wait for a specified number of milliseconds.
     function wait(milliseconds) {
       return new Promise((resolve) => {
         window.setTimeout(resolve, milliseconds);
@@ -768,7 +235,7 @@
       const message = document.createElement("div");
 
       message.classList.add("bubble", sender);
-      message.textContent = text;
+      message.innerHTML = text;
 
       conversationMessages.appendChild(message);
       saveConversationState();
@@ -796,6 +263,7 @@
 
     // Sam types, pauses, and then sends a message.
     async function samReplies(messages, firstDelay = 2500) {
+      await wait(2000);
       for (let i = 0; i < messages.length; i++) {
         startTyping();
 
@@ -869,10 +337,9 @@
     async function firstConversationStage() {
       setConversationPhase("first-response");
       await samReplies([
-        "I read a story about how apps can sometimes figure out things about people from their online activity, even when they haven't directly shared that information.",
-        "Like, they might use what you watch, search for, or interact with to make predictions about your interests."
+        'I read apps can figure out things about people from their <strong>online activity</strong>.',
+        'Like, they might use what you <strong>watch</strong> or <strong>search</strong> for to make predictions about your interests.'
       ], 2500);
-
       // samReplies() displays the options when Sam finishes.
     }
 
@@ -881,7 +348,7 @@
       setConversationPhase("first-response");
       showOptions([
         {
-          label: "Wait, so an app can make guesses about me just from what I do online?",
+          label: "Apps can assume stuff from what I do online?",
           action: explainPredictions
         },
         {
@@ -895,8 +362,8 @@
     async function explainPredictions() {
       setConversationPhase("challenge-options");
       await samReplies([
-        "Yep! They're predictions, not necessarily facts. But it got me thinking about how much our activity can reveal.",
-        "Want to try a little detective challenge? 🕵️"
+        "Yep! They're <strong>predictions</strong>, not necessarily facts. But it got me thinking about how much our activity can reveal.",
+        "Want to try a little <strong>detective challenge</strong>? 🕵️"
       ]);
 
       showChallengeOptions();
@@ -951,27 +418,24 @@
       ]);
     }
 
-    // Reveal the quiz only after the user chooses to start it.
-    function openQuiz() {
+    async function openQuiz() {
       conversationFinished = true;
       setConversationPhase("quiz");
+
+      await samReplies([
+        "Great! Let's see what you can figure out. <strong>Choose the answer that makes the most sense.</strong>"
+      ]);
+
+      await wait(2000);
 
       dateDivider.hidden = false;
       lesson.hidden = false;
 
-      addMessage(
-        "Great! Let's see what you can figure out. Choose the answer that makes the most sense.",
-        "received"
-      );
-
-      scrollToLatest();
-
-      // No further chat reply is needed, so the options disappear.
       replyPanel.hidden = true;
+      scrollToLatest();
 
       // Put focus on the quiz heading for keyboard accessibility.
       const quizHeading = document.getElementById("quizHeading");
-
       if (quizHeading) {
         quizHeading.setAttribute("tabindex", "-1");
         quizHeading.focus({ preventScroll: true });
