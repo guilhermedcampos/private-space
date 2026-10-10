@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messages | Private Space</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+
+<body class="app-body">
+
+  <main class="messages-app">
+
+    <header class="messages-header">
+      <div>
+        <h1>Messages</h1>
+      </div>
+
+      <button class="icon-button" aria-label="New conversation">
+        ✎
+      </button>
+    </header>
+
+    <label class="search-box">
+      <span aria-hidden="true">⌕</span>
+      <input id="search" type="search" placeholder="Search">
+    </label>
+
+    <section class="conversation-list" aria-label="Conversations">
+
+      <a class="conversation" href="chats/sam.html">
+        <div class="avatar avatar-sam">S</div>
+        <div class="conversation-info">
+          <div class="conversation-heading">
+            <span class="contact-name">Sam</span>
+            <span class="tag">story mode</span>
+            <span class="time">now</span>
+          </div>
+          <p class="preview">Hey, are you free? Something weird just happened...</p>
+        </div>
+      </a>
+
+      <a class="conversation" href="chats/mum.html">
+        <div class="avatar avatar-mum">M</div>
+        <div class="conversation-info">
+          <div class="conversation-heading">
+            <span class="contact-name">Mum</span>
+            <span class="time">2m</span>
+          </div>
+          <p class="preview">That cookies thing 🍪 I clicked accept all and now...</p>
+        </div>
+      </a>
+
+      <a class="conversation" href="chats/alex.html">
+        <div class="avatar avatar-alex">A</div>
+        <div class="conversation-info">
+          <div class="conversation-heading">
+            <span class="contact-name">Alex</span>
+            <span class="time">1h</span>
+          </div>
+          <p class="preview">You: haha yeah, later!</p>
+        </div>
+      </a>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Sam | Private Space</title>
+
+  <link rel="stylesheet" href="../style.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body.app-body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      background: #F9F5EB;
+      color: #1A1A1A;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .chat-app {
+      width: 100%;
+      max-width: 390px;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 500px;
+      margin: 0 auto;
+      background: #F9F5EB;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Header */
+
+    .chat-header {
+      flex-shrink: 0;
+      height: 95px;
+      padding: 36px 16px 10px;
+      background: white;
+      border-bottom: 3px solid black;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 2;
+    }
+
+    .back-button {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: black;
+      color: white;
+      text-decoration: none;
+      font-size: 27px;
+      line-height: 1;
+    }
+
+    .avatar-sam {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #C97A4B;
+      border: 2px solid black;
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .contact-details {
+      min-width: 0;
+    }
+
+    .contact-name {
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .contact-status {
+      margin-top: 3px;
+      color: rgba(0, 0, 0, 0.5);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .contact-status.typing {
+      color: #278447;
+      font-weight: 800;
+    }
+
+    .contact-status.typing::after {
+      content: "...";
+      display: inline-block;
+      width: 0;
+      overflow: hidden;
+      vertical-align: bottom;
+      animation: typing-dots 1.2s steps(4, end) infinite;
+    }
+
+    @keyframes typing-dots {
+      to {
+        width: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .contact-status.typing::after {
+        animation: none;
+        width: 12px;
+      }
+    }
+
+    .more-button {
+      width: 32px;
+      height: 32px;
+      margin-left: auto;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F9F5EB;
+      border: 2px solid black;
+      border-radius: 50%;
+      color: #1A1A1A;
+      font-size: 20px;
+    }
+
+    /* Scrollable conversation */
+
+    .chat-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      padding: 20px 16px 28px;
+      scroll-behavior: smooth;
+    }
+
+    .story-label {
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto 20px;
+      padding: 9px 16px;
+      background: white;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 999px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .bubble {
+      width: fit-content;
+      max-width: 90%;
+      margin: 12px 0;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .received {
+      margin-right: auto;
+      background: white;
+      border: 2px solid black;
+      border-radius: 20px 20px 20px 6px;
+      box-shadow: 3px 3px 0 black;
+    }
+
+    .sent {
+      margin-left: auto;
+      background: #E9EFDF;
+      border: 2px solid black;
+      border-radius: 20px 20px 6px 20px;
+      box-shadow: 3px 3px 0 #C97A4B;
+    }
+
+    .date-divider {
+      margin: 26px 0 18px;
+      text-align: center;
+      color: #66503E;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    /* Initial interaction panel */
+
+    .reply-panel {
+      flex-shrink: 0;
+      padding: 19px 16px 24px;
+      background: white;
+      border-top: 3px solid black;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .reply-options {
+      display: grid;
+      gap: 12px;
+    }
+
+    .reply-button {
+      width: 100%;
+      min-height: 53px;
+      padding: 14px 16px;
+      border: 2px solid black;
+      border-radius: 999px;
+      background: white;
+      color: black;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background-color 150ms ease,
+                  transform 150ms ease;
+    }
+
+    .reply-button.primary {
+      min-height: 60px;
+      padding: 14px 20px;
+      background: black;
+      color: white;
+      box-shadow: 4px 4px 0 #C97A4B;
+      border-color: black;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .reply-button.primary .arrow {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      color: black;
+      border-radius: 50%;
+      font-size: 16px;
+    }
+
+    .reply-button:hover {
+      background: #F9F5EB;
+      color: black;
+    }
+
+    .reply-button.primary:hover {
+      background: #292929;
+      color: white;
+    }
+
+    .reply-button:focus-visible,
+    .back-button:focus-visible {
+      outline: 3px solid #C97A4B;
+      outline-offset: 4px;
+    }
+
+    .reply-button:active {
+      transform: translateY(1px);
+    }
+
+    .home-indicator {
+      flex-shrink: 0;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+    }
+
+    .home-indicator span {
+      width: 120px;
+      height: 5px;
+      background: black;
+      border-radius: 999px;
+    }
+
+    /* Unlocked lesson */
+
+    .lesson {
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px dashed #C9BDAA;
+    }
+
+    .lesson-heading {
+      margin: 0 0 10px;
+      font-size: 20px;
+      line-height: 1.35;
+      font-weight: 900;
+    }
+
+    .lesson-intro {
+      margin: 0 0 18px;
+      color: #66503E;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .quiz-card {
+      padding: 18px;
+      background: white;
+      border: 2px solid black;
+      border-radius: 18px;
+      box-shadow: 3px 3px 0 #C97A4B;
+    }
+
+    .quiz-label {
+      margin: 0 0 8px;
+      color: #8B5737;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .quiz-question {
+      margin: 0 0 10px;
+      font-size: 17px;
+      line-height: 1.4;
+      font-weight: 900;
+    }
+
+    .quiz-context {
+      margin: 0 0 16px;
+      color: #5F5A52;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .quiz-choices {
+      display: grid;
+      gap: 10px;
+    }
+
+    .quiz-choice {
+      width: 100%;
+      padding: 12px;
+      background: #FFFEFB;
+      border: 1.5px solid #C9BDAA;
+      border-radius: 12px;
+      color: #1A1A1A;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .quiz-choice:hover:not(:disabled) {
+      border-color: black;
+      background: #F9F5EB;
+    }
+
+    .quiz-choice:focus-visible {
+      outline: 3px solid #C97A4B;
+      outline-offset: 3px;
+    }
+
+    .quiz-choice:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+
+    .quiz-choice.correct-answer {
+      border: 2px solid #486B42;
+      background: #EEF5E9;
+    }
+
+    #feedback {
+      margin-top: 14px;
+      padding: 14px;
+      background: #F9F5EB;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .back-to-messages {
+      display: block;
+      margin: 24px 0 8px;
+      color: #66503E;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="app-body">
+
+  <main class="chat-app">
+
+    <!-- Chat header -->
+
+    <header class="chat-header">
+      <a
+        class="back-button"
+        href="../messages.html"
+        aria-label="Back to messages"
+      >‹</a>
+
+      <div class="avatar-sam" aria-hidden="true">S</div>
+
+      <div class="contact-details">
+        <div class="contact-name">Sam</div>
+        <div class="contact-status" id="samStatus">
+          online 5 minutes ago
+        </div>
+      </div>
+
+      <div class="more-button" aria-hidden="true">⋯</div>
+    </header>
+
+    <!-- Conversation area -->
+
+    <section
+      class="chat-content"
+      id="chatContent"
+      aria-label="Conversation with Sam"
+    >
+
+      <div class="story-label">
+        Everything is fictional.
+      </div>
+
+
+      <div class="bubble received">
+        Hey, are you free? Something weird just hit the news.
+      </div>
+
+      <!-- Everything below stays hidden until the user continues -->
+
+      <div id="unlockedConversation" hidden>
+        <!-- Messages are added here as the conversation progresses -->
+        <div id="conversationMessages"></div>
+
+        <div
+          id="typingIndicator"
+          class="bubble received"
+          role="status"
+          aria-label="Sam is typing"
+          hidden
+        >
+          <span class="typing-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </div>
+
+        <div class="date-divider" id="dateDivider" hidden>
+          Your detective challenge
+        </div>
+
+        <!-- Interactive privacy quiz -->
+
+        <section class="lesson" aria-labelledby="quizHeading">
+
+          <h2 class="lesson-heading" id="quizHeading">
+            What might an app learn from your activity?
+          </h2>
+
+          <p class="lesson-intro">
+            Imagine you regularly watch videos about baking, save cake
+            recipes, and follow several baking accounts.
+          </p>
+
+          <div class="quiz-card">
+
+            <p class="quiz-label">Your detective challenge</p>
+
+            <h3 class="quiz-question">
+              What could an app predict from this activity?
+            </h3>
+
+            <p class="quiz-context">
+              Choose the answer you think makes the most sense.
+              It's okay to get it wrong.
+            </p>
+
+            <div class="quiz-choices" id="quizChoices">
+
+              <button class="quiz-choice" data-answer="wrong">
+                A. Only that you own a phone.
+              </button>
+
+              <button class="quiz-choice" data-answer="correct">
+                B. That you may be interested in baking.
+              </button>
+
+              <button class="quiz-choice" data-answer="wrong">
+                C. Nothing, because you never explicitly told the app.
+              </button>
+
+            </div>
+
+            <div
+              id="feedback"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
+
+          </div>
+
+          <a class="back-to-messages" href="../messages.html">
+            ← Back to all messages
+          </a>
+
+        </section>
+
+      </div>
+
+    </section>
+
+    <!-- Initial response options -->
+
+    <section class="reply-panel" id="replyPanel" aria-label="Choose your reply">
+
+      <div class="reply-options">
+
+        <button
+          class="reply-button primary"
+          id="continueButton"
+          type="button"
+        >
+          <span>Sure, what is it?</span>
+          <span class="arrow" aria-hidden="true">→</span>
+        </button>
+
+        <button
+          class="reply-button"
+          id="laterButton"
+          type="button"
+        >
+          Not now. Remind me later.
+        </button>
+
+      </div>
+
+    </section>
+
+    <div class="home-indicator" aria-hidden="true">
+      <span></span>
+    </div>
+
+  </main>
+
+  <script>
+    const continueButton = document.getElementById("continueButton");
+    const laterButton = document.getElementById("laterButton");
+    const replyPanel = document.getElementById("replyPanel");
+    const unlockedConversation = document.getElementById("unlockedConversation");
+    const chatContent = document.getElementById("chatContent");
+    const samStatus = document.getElementById("samStatus");
+    const typingIndicator = document.getElementById("typingIndicator");
+    const conversationMessages = document.getElementById("conversationMessages");
+    const dateDivider = document.getElementById("dateDivider");
+    const lesson = document.querySelector(".lesson");
+
+    let conversationStarted = false;
+    let waitingForChoice = false;
+    let conversationFinished = false;
+
+    // Keep the quiz hidden until the conversation reaches it.
+    lesson.hidden = true;
+
+    // Hide the typing indicator until Sam starts composing a message.
+    typingIndicator.hidden = true;
+
+    // Wait for a specified number of milliseconds.
+    function wait(milliseconds) {
+      return new Promise((resolve) => {
+        window.setTimeout(resolve, milliseconds);
+      });
+    }
+
+    // Keep the latest message and typing indicator visible.
+    function scrollToLatest() {
+      chatContent.scrollTop = chatContent.scrollHeight;
+    }
+
+    // Add a message from Sam or the user.
+    function addMessage(text, sender) {
+      const message = document.createElement("div");
+
+      message.classList.add("bubble", sender);
+      message.textContent = text;
+
+      conversationMessages.appendChild(message);
+      scrollToLatest();
+
+      return message;
+    }
+
+    // Update Sam's status and show the animated typing indicator.
+    function startTyping() {
+      samStatus.textContent = "Sam is typing";
+      samStatus.classList.add("typing");
+
+      typingIndicator.hidden = false;
+      scrollToLatest();
+    }
+
+    // Hide the typing indicator when Sam has finished.
+    function stopTyping() {
+      typingIndicator.hidden = true;
+
+      samStatus.textContent = "online";
+      samStatus.classList.remove("typing");
+    }
+
+    // Sam types, pauses, and then sends a message.
+    async function samReplies(messages, firstDelay = 2500) {
+      for (let i = 0; i < messages.length; i++) {
+        startTyping();
+
+        // Sam takes longer to compose the first reply.
+        // Following messages arrive with a shorter pause.
+        const delay = i === 0 ? firstDelay : 900;
+
+        await wait(delay);
+
+        stopTyping();
+        addMessage(messages[i], "received");
+
+        // Brief pause between messages.
+        if (i < messages.length - 1) {
+          await wait(400);
+        }
+      }
+    }
+
+    let currentOptions = [];
+
+    // Display choices at the bottom of the screen.
+    function showOptions(options) {
+      currentOptions = options;
+      waitingForChoice = true;
+
+      replyPanel.hidden = false;
+
+      const optionsContainer = replyPanel.querySelector(".reply-options");
+      optionsContainer.replaceChildren();
+
+      options.forEach((option, index) => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className =
+          index === 0
+            ? "reply-button primary"
+            : "reply-button";
+
+        button.textContent = option.label;
+
+        button.addEventListener("click", () => {
+          if (!waitingForChoice) return;
+
+          waitingForChoice = false;
+          replyPanel.hidden = true;
+
+          // Display the user's message only after they select it.
+          addMessage(option.label, "sent");
+
+          // Continue the conversation based on their choice.
+          option.action();
+        });
+
+        optionsContainer.appendChild(button);
+      });
+
+      scrollToLatest();
+
+      // Move keyboard focus to the first available reply.
+      const firstButton = optionsContainer.querySelector("button");
+
+      if (firstButton) {
+        firstButton.focus({ preventScroll: true });
+      }
+    }
+
+    // First stage: Sam introduces the idea of inferred information.
+    async function firstConversationStage() {
+      await samReplies([
+        "I read a story about how apps can sometimes figure out things about people from their online activity, even when they haven't directly shared that information.",
+        "Like, they might use what you watch, search for, or interact with to make predictions about your interests."
+      ], 2500);
+
+      // samReplies() displays the options when Sam finishes.
+    }
+
+    // Second stage: the user chooses how to respond.
+    function handleFirstResponse() {
+      showOptions([
+        {
+          label: "Wait, so an app can make guesses about me just from what I do online?",
+          action: explainPredictions
+        },
+        {
+          label: "How can it figure that out?",
+          action: explainPatterns
+        }
+      ]);
+    }
+
+    // Explain that online predictions are not necessarily facts.
+    async function explainPredictions() {
+      await samReplies([
+        "Yep! They're predictions, not necessarily facts. But it got me thinking about how much our activity can reveal.",
+        "Want to try a little detective challenge? 🕵️"
+      ]);
+
+      showChallengeOptions();
+    }
+
+    // Give an alternative explanation if the user asks how it works.
+    async function explainPatterns() {
+      await samReplies([
+        "Apps can look for patterns in what you watch, search for, click on, or interact with.",
+        "For example, if you often watch baking videos, an app might predict that you're interested in baking.",
+        "These are predictions based on patterns, not necessarily facts about you.",
+        "Want to try a little detective challenge? 🕵️"
+      ]);
+
+      showChallengeOptions();
+    }
+
+    // Offer a choice before revealing the quiz.
+    function showChallengeOptions() {
+      showOptions([
+        {
+          label: "Sure, let's try!",
+          action: openQuiz
+        },
+        {
+          label: "Can you give me an example first?",
+          action: giveExample
+        }
+      ]);
+    }
+
+    async function giveExample() {
+      await samReplies([
+        "Imagine you watch lots of baking videos, save cake recipes, and follow baking accounts.",
+        "An app might use those patterns to predict that you enjoy baking, even if you never told it directly."
+      ]);
+
+      showOptions([
+        {
+          label: "Okay, let's try the challenge!",
+          action: openQuiz
+        },
+        {
+          label: "Back to all messages",
+          action: () => {
+            window.location.href = "../messages.html";
+          }
+        }
+      ]);
+    }
+
+    // Reveal the quiz only after the user chooses to start it.
+    function openQuiz() {
+      conversationFinished = true;
+
+      dateDivider.hidden = false;
+      lesson.hidden = false;
+
+      addMessage(
+        "Great! Let's see what you can figure out. Choose the answer that makes the most sense.",
+        "received"
+      );
+
+      scrollToLatest();
+
+      // No further chat reply is needed, so the options disappear.
+      replyPanel.hidden = true;
+
+      // Put focus on the quiz heading for keyboard accessibility.
+      const quizHeading = document.getElementById("quizHeading");
+
+      if (quizHeading) {
+        quizHeading.setAttribute("tabindex", "-1");
+        quizHeading.focus({ preventScroll: true });
+      }
+
+      scrollToLatest();
+    }
+
+    // Initial choice: continue or come back later.
+    continueButton.addEventListener("click", async () => {
+      if (conversationStarted) return;
+
+      conversationStarted = true;
+
+      unlockedConversation.hidden = false;
+      replyPanel.hidden = true;
+
+      // Only show the selected reply.
+      addMessage("Sure, what is it?", "sent");
+
+      // Sam starts typing after the user's reply.
+      await firstConversationStage();
+
+      // Wait until Sam has finished both messages before offering replies.
+      handleFirstResponse();
+    });
+
+    laterButton.addEventListener("click", () => {
+      window.location.href = "../messages.html";
+    });
+
+    // Quiz interaction.
+    const quizChoices = document.querySelectorAll(".quiz-choice");
+    const feedback = document.getElementById("feedback");
+
+    quizChoices.forEach((choice) => {
+      choice.addEventListener("click", () => {
+        const isCorrect = choice.dataset.answer === "correct";
+
+        feedback.hidden = false;
+
+        if (isCorrect) {
+          feedback.textContent =
+            "Exactly! Apps can use patterns in your activity to predict " +
+            "your interests, even if you never explicitly tell them. " +
+            "Remember, these are predictions, not necessarily facts about you.";
+        } else {
+          feedback.textContent =
+            "Not quite, and that's okay! Your online activity can provide " +
+            "clues about your interests, even when you haven't directly " +
+            "shared them. For example, repeatedly watching baking videos " +
+            "may suggest an interest in baking.";
+        }
+
+        // Prevent repeated answers once the question has been answered.
+        quizChoices.forEach((button) => {
+          button.disabled = true;
+
+          if (button.dataset.answer === "correct") {
+            button.classList.add("correct-answer");
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
