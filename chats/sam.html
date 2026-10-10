@@ -717,6 +717,33 @@
     let conversationStarted = false;
     let waitingForChoice = false;
     let conversationFinished = false;
+    const conversationStorageKey = "private-space-sam-conversation";
+    let conversationPhase = "initial";
+
+    function readConversationState() {
+      try {
+        return JSON.parse(sessionStorage.getItem(conversationStorageKey) || "null");
+      } catch {
+        return null;
+      }
+    }
+
+    function saveConversationState() {
+      const state = readConversationState() || {};
+      state.started = conversationStarted;
+      state.phase = conversationPhase;
+      state.messages = [...conversationMessages.children].map((message) => ({
+        text: message.textContent,
+        sender: message.classList.contains("sent") ? "sent" : "received"
+      }));
+      state.quizAnswer = state.quizAnswer || null;
+      sessionStorage.setItem(conversationStorageKey, JSON.stringify(state));
+    }
+
+    function setConversationPhase(phase) {
+      conversationPhase = phase;
+      saveConversationState();
+    }
 
     // Keep the quiz hidden until the conversation reaches it.
     lesson.hidden = true;
@@ -744,6 +771,7 @@
       message.textContent = text;
 
       conversationMessages.appendChild(message);
+      saveConversationState();
       scrollToLatest();
 
       return message;
@@ -793,6 +821,7 @@
     function showOptions(options) {
       currentOptions = options;
       waitingForChoice = true;
+      saveConversationState();
 
       replyPanel.hidden = false;
 
@@ -838,6 +867,7 @@
 
     // First stage: Sam introduces the idea of inferred information.
     async function firstConversationStage() {
+      setConversationPhase("first-response");
       await samReplies([
         "I read a story about how apps can sometimes figure out things about people from their online activity, even when they haven't directly shared that information.",
         "Like, they might use what you watch, search for, or interact with to make predictions about your interests."
@@ -848,6 +878,7 @@
 
     // Second stage: the user chooses how to respond.
     function handleFirstResponse() {
+      setConversationPhase("first-response");
       showOptions([
         {
           label: "Wait, so an app can make guesses about me just from what I do online?",
@@ -862,6 +893,7 @@
 
     // Explain that online predictions are not necessarily facts.
     async function explainPredictions() {
+      setConversationPhase("challenge-options");
       await samReplies([
         "Yep! They're predictions, not necessarily facts. But it got me thinking about how much our activity can reveal.",
         "Want to try a little detective challenge? 🕵️"
@@ -872,6 +904,7 @@
 
     // Give an alternative explanation if the user asks how it works.
     async function explainPatterns() {
+      setConversationPhase("challenge-options");
       await samReplies([
         "Apps can look for patterns in what you watch, search for, click on, or interact with.",
         "For example, if you often watch baking videos, an app might predict that you're interested in baking.",
@@ -884,6 +917,7 @@
 
     // Offer a choice before revealing the quiz.
     function showChallengeOptions() {
+      setConversationPhase("challenge-options");
       showOptions([
         {
           label: "Sure, let's try!",
@@ -897,6 +931,7 @@
     }
 
     async function giveExample() {
+      setConversationPhase("example-options");
       await samReplies([
         "Imagine you watch lots of baking videos, save cake recipes, and follow baking accounts.",
         "An app might use those patterns to predict that you enjoy baking, even if you never told it directly."
@@ -919,6 +954,7 @@
     // Reveal the quiz only after the user chooses to start it.
     function openQuiz() {
       conversationFinished = true;
+      setConversationPhase("quiz");
 
       dateDivider.hidden = false;
       lesson.hidden = false;
@@ -949,6 +985,7 @@
       if (conversationStarted) return;
 
       conversationStarted = true;
+      setConversationPhase("first-response");
 
       unlockedConversation.hidden = false;
       replyPanel.hidden = true;
@@ -974,6 +1011,17 @@
     quizChoices.forEach((choice) => {
       choice.addEventListener("click", () => {
         const isCorrect = choice.dataset.answer === "correct";
+        const state = readConversationState() || {};
+        state.quizAnswer = isCorrect ? "correct" : "incorrect";
+        sessionStorage.setItem(conversationStorageKey, JSON.stringify({
+          ...state,
+          started: conversationStarted,
+          phase: "quiz",
+          messages: [...conversationMessages.children].map((message) => ({
+            text: message.textContent,
+            sender: message.classList.contains("sent") ? "sent" : "received"
+          }))
+        }));
 
         feedback.hidden = false;
 
@@ -1000,6 +1048,59 @@
         });
       });
     });
+
+    // Restore the saved conversation and return to the matching choice point.
+    function restoreConversation() {
+      const state = readConversationState();
+      if (!state || !state.started) return;
+
+      conversationStarted = true;
+      conversationPhase = state.phase || "first-response";
+      unlockedConversation.hidden = false;
+      replyPanel.hidden = true;
+      conversationMessages.replaceChildren();
+
+      (state.messages || []).forEach(({ text, sender }) => {
+        const message = document.createElement("div");
+        message.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
+        message.textContent = text;
+        conversationMessages.appendChild(message);
+      });
+
+      if (conversationPhase === "quiz") {
+        conversationFinished = true;
+        dateDivider.hidden = false;
+        lesson.hidden = false;
+        if (state.quizAnswer) {
+          quizChoices.forEach((choice) => {
+            choice.disabled = true;
+            if (choice.dataset.answer === "correct") choice.classList.add("correct-answer");
+          });
+          feedback.hidden = false;
+          feedback.textContent = state.quizAnswer === "correct"
+            ? "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them. Remember, these are predictions, not necessarily facts about you."
+            : "Not quite, and that's okay! Your online activity can provide clues about your interests, even when you haven't directly shared them. For example, repeatedly watching baking videos may suggest an interest in baking.";
+        }
+      } else {
+        lesson.hidden = true;
+        if (conversationPhase === "challenge-options") showChallengeOptions();
+        else if (conversationPhase === "example-options") showExampleOptions();
+        else handleFirstResponse();
+      }
+
+      window.requestAnimationFrame(scrollToLatest);
+    }
+
+    // Keep the example response's available choices reusable after a return visit.
+    function showExampleOptions() {
+      setConversationPhase("example-options");
+      showOptions([
+        { label: "Okay, let's try the challenge!", action: openQuiz },
+        { label: "Back to all messages", action: () => { window.location.href = "../messages.html"; } }
+      ]);
+    }
+
+    restoreConversation();
   </script>
 </body>
 </html>
