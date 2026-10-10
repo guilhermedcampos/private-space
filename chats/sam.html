@@ -248,6 +248,7 @@
     function startTyping() {
       samStatus.textContent = "Sam is typing";
       samStatus.classList.add("typing");
+      samStatus.classList.remove("online");
 
       typingIndicator.hidden = false;
       scrollToLatest();
@@ -259,6 +260,7 @@
 
       samStatus.textContent = "online";
       samStatus.classList.remove("typing");
+      samStatus.classList.add("online");
     }
 
     // Sam types, pauses, and then sends a message.
