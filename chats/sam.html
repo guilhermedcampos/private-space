@@ -92,46 +92,43 @@
           </h2>
 
           <p class="lesson-intro">
-            Imagine you regularly watch videos about baking, save cake
-            recipes, and follow several baking accounts.
+            Imagine you regularly watch videos about baking and follow several cooking accounts.
           </p>
 
           <div class="quiz-card">
-
             <h3 class="quiz-question">
               What could an app predict from this activity?
             </h3>
 
             <div class="quiz-choices" id="quizChoices">
-
               <button class="quiz-choice" data-answer="wrong">
                 A. Only that you own a phone.
               </button>
-
               <button class="quiz-choice" data-answer="correct">
                 B. That you may be interested in baking.
               </button>
-
               <button class="quiz-choice" data-answer="wrong">
                 C. Nothing, because you never explicitly told the app.
               </button>
-
             </div>
 
-            <div
-              id="feedback"
-              role="status"
-              aria-live="polite"
-              hidden
-            ></div>
-
+            <div id="feedback" role="status" aria-live="polite" hidden></div>
           </div>
 
+          <!-- NEW: Skip / Show answer -->
+          <div id="quizExtraActions" style="display: grid; gap: 10px; margin-top: 16px;">
+            <button id="skipQuizButton" class="reply-button" type="button">Skip</button>
+            <button id="showAnswerButton" class="reply-button" type="button">Show answer</button>
+          </div>
+
+          <!-- Back link now BELOW those options -->
           <a class="back-to-messages" href="../messages.html">
             ← Back to all messages
           </a>
 
         </section>
+
+        <div class="date-divider" id="finalDateDivider" hidden></div>
 
       </div>
 
@@ -180,6 +177,7 @@
     const typingIndicator = document.getElementById("typingIndicator");
     const conversationMessages = document.getElementById("conversationMessages");
     const dateDivider = document.getElementById("dateDivider");
+    const finalDateDivider = document.getElementById("finalDateDivider");
     const lesson = document.querySelector(".lesson");
 
     let conversationStarted = false;
@@ -200,7 +198,7 @@
       const state = readConversationState() || {};
       state.started = conversationStarted;
       state.phase = conversationPhase;
-      state.messages = [...conversationMessages.children].map((message) => ({
+      state.messages = [...unlockedConversation.querySelectorAll(".bubble")].map((message) => ({
         text: message.textContent,
         sender: message.classList.contains("sent") ? "sent" : "received"
       }));
@@ -375,9 +373,8 @@
     async function explainPatterns() {
       setConversationPhase("challenge-options");
       await samReplies([
-        "Apps can look for patterns in what you watch, search for, click on, or interact with.",
-        "For example, if you often watch baking videos, an app might predict that you're interested in baking.",
-        "These are predictions based on patterns, not necessarily facts about you.",
+        "For example, if you often watch <strong>hiking videos</strong>, an app may predict that you're interested in outdoor activities.",
+        "These are predictions based on <strong>patterns</strong>, not necessarily facts.",
         "Want to try a little detective challenge? 🕵️"
       ]);
 
@@ -473,6 +470,49 @@
     // Quiz interaction.
     const quizChoices = document.querySelectorAll(".quiz-choice");
     const feedback = document.getElementById("feedback");
+    const quizExtraActions = document.getElementById("quizExtraActions");
+    const skipQuizButton = document.getElementById("skipQuizButton");
+    const showAnswerButton = document.getElementById("showAnswerButton");
+    let finalFollowUpSent = false;
+
+  async function sendFinalInsight() {
+    if (finalFollowUpSent) return;
+    finalFollowUpSent = true;
+
+    if (quizExtraActions) quizExtraActions.hidden = true;
+
+    await wait(2000);
+
+    if (finalDateDivider) finalDateDivider.hidden = false;
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble sent";
+    bubble.textContent = "That's insightful, thanks!";
+    unlockedConversation.appendChild(bubble);
+    
+    saveConversationState();
+    scrollToLatest();
+  }
+
+    // SKIP MUST: buttons disappear, NO feedback
+    skipQuizButton?.addEventListener("click", () => {
+      feedback.hidden = true;
+      feedback.textContent = "";
+      if (quizExtraActions) quizExtraActions.hidden = true;
+      quizChoices.forEach(b => b.disabled = true);
+      sendFinalInsight();
+    });
+
+    showAnswerButton?.addEventListener("click", () => {
+      feedback.hidden = false;
+      feedback.textContent = "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them.";
+      quizChoices.forEach(b => {
+        b.disabled = true;
+        if (b.dataset.answer === "correct") b.classList.add("correct-answer");
+      });
+      if (quizExtraActions) quizExtraActions.hidden = true;
+      sendFinalInsight();
+    });
 
     quizChoices.forEach((choice) => {
       choice.addEventListener("click", () => {
@@ -490,28 +530,17 @@
         }));
 
         feedback.hidden = false;
+        feedback.textContent = isCorrect
+          ? "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them."
+          : "Not quite, and that's okay! Your online activity can provide clues about your interests.";
 
-        if (isCorrect) {
-          feedback.textContent =
-            "Exactly! Apps can use patterns in your activity to predict " +
-            "your interests, even if you never explicitly tell them. " +
-            "Remember, these are predictions, not necessarily facts about you.";
-        } else {
-          feedback.textContent =
-            "Not quite, and that's okay! Your online activity can provide " +
-            "clues about your interests, even when you haven't directly " +
-            "shared them. For example, repeatedly watching baking videos " +
-            "may suggest an interest in baking.";
-        }
-
-        // Prevent repeated answers once the question has been answered.
         quizChoices.forEach((button) => {
           button.disabled = true;
-
-          if (button.dataset.answer === "correct") {
-            button.classList.add("correct-answer");
-          }
+          if (button.dataset.answer === "correct") button.classList.add("correct-answer");
         });
+
+        if (quizExtraActions) quizExtraActions.hidden = true;
+        sendFinalInsight();
       });
     });
 
@@ -547,6 +576,8 @@
             ? "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them. Remember, these are predictions, not necessarily facts about you."
             : "Not quite, and that's okay! Your online activity can provide clues about your interests, even when you haven't directly shared them. For example, repeatedly watching baking videos may suggest an interest in baking.";
         }
+        if (quizExtraActions) quizExtraActions.hidden = true;
+        finalFollowUpSent = true; // don't auto-send again on reload
       } else {
         lesson.hidden = true;
         if (conversationPhase === "challenge-options") showChallengeOptions();
