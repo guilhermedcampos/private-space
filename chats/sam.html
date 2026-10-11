@@ -130,6 +130,8 @@
 
         <div class="date-divider" id="finalDateDivider" hidden></div>
 
+        <div id="postQuizMessages"></div>
+
       </div>
 
     </section>
@@ -178,6 +180,7 @@
     const conversationMessages = document.getElementById("conversationMessages");
     const dateDivider = document.getElementById("dateDivider");
     const finalDateDivider = document.getElementById("finalDateDivider");
+    const postQuizMessages = document.getElementById("postQuizMessages");
     const lesson = document.querySelector(".lesson");
 
     let conversationStarted = false;
@@ -198,9 +201,13 @@
       const state = readConversationState() || {};
       state.started = conversationStarted;
       state.phase = conversationPhase;
-      state.messages = [...unlockedConversation.querySelectorAll(".bubble")].map((message) => ({
-        text: message.textContent,
-        sender: message.classList.contains("sent") ? "sent" : "received"
+      state.messages = [...conversationMessages.children].map((m) => ({
+        text: m.textContent,
+        sender: m.classList.contains("sent") ? "sent" : "received"
+      }));
+      state.postMessages = [...(postQuizMessages?.children || [])].map((m) => ({
+        text: m.textContent,
+        sender: m.classList.contains("sent") ? "sent" : "received"
       }));
       state.quizAnswer = state.quizAnswer || null;
       sessionStorage.setItem(conversationStorageKey, JSON.stringify(state));
@@ -231,14 +238,19 @@
     // Add a message from Sam or the user.
     function addMessage(text, sender) {
       const message = document.createElement("div");
-
       message.classList.add("bubble", sender);
       message.innerHTML = text;
 
-      conversationMessages.appendChild(message);
+      // After quiz? -> go AFTER quiz card
+      const isPostQuiz = finalFollowUpSent || conversationPhase.startsWith("agency");
+      if (isPostQuiz && postQuizMessages) {
+        postQuizMessages.appendChild(message);
+      } else {
+        conversationMessages.appendChild(message);
+      }
+
       saveConversationState();
       scrollToLatest();
-
       return message;
     }
 
@@ -475,29 +487,72 @@
     const showAnswerButton = document.getElementById("showAnswerButton");
     let finalFollowUpSent = false;
 
-  async function sendFinalInsight() {
-    if (finalFollowUpSent) return;
-    finalFollowUpSent = true;
+    async function sendFinalInsight() {
+      if (finalFollowUpSent) return;
+      finalFollowUpSent = true;
+      if (quizExtraActions) quizExtraActions.hidden = true;
 
-    if (quizExtraActions) quizExtraActions.hidden = true;
+      await wait(1000);
+      if (finalDateDivider) {
+        finalDateDivider.textContent = "Today";
+        finalDateDivider.hidden = false;
+      }
 
-    await wait(2000);
+      // use addMessage now - it will auto-route to postQuizMessages
+      addMessage("That's insightful, thanks!", "sent");
+      
+      await wait(1000);
+      startAgencyTeaching();
+    }
 
-    if (finalDateDivider) finalDateDivider.hidden = false;
+    // --- AGENCY: just samReplies + your reply, linear ---
 
-    const bubble = document.createElement("div");
-    bubble.className = "bubble sent";
-    bubble.textContent = "That's insightful, thanks!";
-    unlockedConversation.appendChild(bubble);
-    
-    saveConversationState();
-    scrollToLatest();
-  }
+    async function startAgencyTeaching() {
+      setConversationPhase("agency-intro");
+      await samReplies([
+        "Right? Apps guess from patterns, not facts.",
+        "We can control what clues we leave. I found 3 quick things that help me."
+      ]);
+      showOptions([{ label: "Show me", action: teachTip1 }]);
+    }
+
+    async function teachTip1() {
+      setConversationPhase("agency-tip1");
+      await samReplies([
+        "1. Check: apps have privacy / history settings. You can see everything they saved about you there.",
+      ]);
+      showOptions([{ label: "Okay", action: teachTip2 }]);
+    }
+
+    async function teachTip2() {
+      setConversationPhase("agency-tip2");
+      await samReplies([
+        "2. Pause / Clear: you can pause watch history or clear searches.",
+      ]);
+      showOptions([{ label: "Got it", action: teachTip3 }]);
+    }
+
+    async function teachTip3() {
+      setConversationPhase("agency-tip3");
+      await samReplies([
+        "3. Incognito: use it when you explore stuff you don't want saved. It doesn't make you invisible, though."
+      ]);
+      showOptions([{ label: "Makes sense", action: teachWrapUp }]);
+    }
+
+    async function teachWrapUp() {
+      setConversationPhase("agency-done");
+      await samReplies([
+        "Predictions aren't facts about you.",
+        "But you can choose what traces you leave behind."
+      ]);
+    }
 
     // SKIP MUST: buttons disappear, NO feedback
     skipQuizButton?.addEventListener("click", () => {
       feedback.hidden = true;
       feedback.textContent = "";
+      replyPanel.hidden = false;
       if (quizExtraActions) quizExtraActions.hidden = true;
       quizChoices.forEach(b => b.disabled = true);
       sendFinalInsight();
@@ -554,38 +609,54 @@
       unlockedConversation.hidden = false;
       replyPanel.hidden = true;
       conversationMessages.replaceChildren();
+      postQuizMessages.replaceChildren();
 
       (state.messages || []).forEach(({ text, sender }) => {
-        const message = document.createElement("div");
-        message.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
-        message.textContent = text;
-        conversationMessages.appendChild(message);
+        const m = document.createElement("div");
+        m.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
+        m.textContent = text;
+        conversationMessages.appendChild(m);
+      });
+      (state.postMessages || []).forEach(({ text, sender }) => {
+        const m = document.createElement("div");
+        m.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
+        m.textContent = text;
+        postQuizMessages.appendChild(m);
       });
 
-      if (conversationPhase === "quiz") {
+      if (conversationPhase === "quiz" || conversationPhase.startsWith("agency")) {
         conversationFinished = true;
         dateDivider.hidden = false;
         lesson.hidden = false;
         if (state.quizAnswer) {
-          quizChoices.forEach((choice) => {
-            choice.disabled = true;
-            if (choice.dataset.answer === "correct") choice.classList.add("correct-answer");
+          quizChoices.forEach((c) => {
+            c.disabled = true;
+            if (c.dataset.answer === "correct") c.classList.add("correct-answer");
           });
           feedback.hidden = false;
           feedback.textContent = state.quizAnswer === "correct"
-            ? "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them. Remember, these are predictions, not necessarily facts about you."
-            : "Not quite, and that's okay! Your online activity can provide clues about your interests, even when you haven't directly shared them. For example, repeatedly watching baking videos may suggest an interest in baking.";
+            ? "Exactly! Apps can use patterns in your activity to predict your interests."
+            : "Not quite, and that's okay! Your online activity can provide clues.";
         }
         if (quizExtraActions) quizExtraActions.hidden = true;
-        finalFollowUpSent = true; // don't auto-send again on reload
+        if (finalDateDivider) {
+          finalDateDivider.textContent = "Today";
+          finalDateDivider.hidden = false;
+        }
+        finalFollowUpSent = true;
+
+        if (conversationPhase === "agency-intro") startAgencyTeaching();
+        else if (conversationPhase === "agency-tip1") teachTip1();
+        else if (conversationPhase === "agency-tip2") teachTip2();
+        else if (conversationPhase === "agency-tip3") teachTip3();
+        else if (conversationPhase === "agency-done") teachWrapUp();
       } else {
         lesson.hidden = true;
         if (conversationPhase === "challenge-options") showChallengeOptions();
         else if (conversationPhase === "example-options") showExampleOptions();
         else handleFirstResponse();
       }
-
-      window.requestAnimationFrame(scrollToLatest);
+      requestAnimationFrame(scrollToLatest);
     }
 
     // Keep the example response's available choices reusable after a return visit.
