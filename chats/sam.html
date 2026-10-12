@@ -131,6 +131,10 @@
         <div class="date-divider" id="finalDateDivider" hidden></div>
         <div id="postQuizMessages"></div>
 
+        <div id="typingIndicatorPost" class="bubble received" role="status" aria-label="Sam is typing" hidden>
+          <span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+        </div>
+
         <!-- HORSE RACE EMBED - PLAY above image -->
         <div id="horseRaceEmbed" style="display:none; margin:24px 16px 36px; text-align:center;">
           <a href="../minigames/horse_race.html" style="display:inline-flex; align-items:center; justify-content:center; width:100%; max-width:320px; background:#1a1a1a; color:#fff; font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; padding:14px 32px; border-radius:14px; text-decoration:none; box-shadow:0 5px 0 #000, 0 8px 20px rgba(0,0,0,0.22); margin-bottom:14px;">▶ PLAY</a>
@@ -177,13 +181,8 @@
   </main>
 
   <script>
-    const continueButton = document.getElementById("continueButton");
-    const laterButton = document.getElementById("laterButton");
-    const replyPanel = document.getElementById("replyPanel");
-    const unlockedConversation = document.getElementById("unlockedConversation");
-    const chatContent = document.getElementById("chatContent");
-    const samStatus = document.getElementById("samStatus");
     const typingIndicator = document.getElementById("typingIndicator");
+    const typingIndicatorPost = document.getElementById("typingIndicatorPost");
     const conversationMessages = document.getElementById("conversationMessages");
     const dateDivider = document.getElementById("dateDivider");
     const finalDateDivider = document.getElementById("finalDateDivider");
@@ -195,6 +194,9 @@
     let conversationFinished = false;
     const conversationStorageKey = "private-space-sam-conversation";
     let conversationPhase = "initial";
+    let finalFollowUpSent = false; // <- moved to top
+    function isPostQuiz() { return finalFollowUpSent || conversationPhase.startsWith("agency"); }
+
 
     function readConversationState() {
       try {
@@ -212,7 +214,7 @@
         text: m.textContent,
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
-      state.postMessages = [...(postQuizMessages?.children || [])].map((m) => ({
+      state.postMessages = [...(postQuizMessages?.children || [])].filter(el => el.id !== 'typingIndicatorPost').map((m) => ({
         text: m.textContent,
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
@@ -231,6 +233,8 @@
     // Hide the typing indicator until Sam starts composing a message.
     typingIndicator.hidden = true;
 
+    if (typingIndicatorPost) typingIndicatorPost.hidden = true;
+
     function wait(milliseconds) {
       return new Promise((resolve) => {
         window.setTimeout(resolve, milliseconds);
@@ -247,37 +251,32 @@
       const message = document.createElement("div");
       message.classList.add("bubble", sender);
       message.innerHTML = text;
-
-      // After quiz? -> go AFTER quiz card
-      const isPostQuiz = finalFollowUpSent || conversationPhase.startsWith("agency");
-      if (isPostQuiz && postQuizMessages) {
-        postQuizMessages.appendChild(message);
+      if (isPostQuiz() && postQuizMessages) {
+        postQuizMessages.parentNode.insertBefore(message, typingIndicatorPost);
       } else {
-        conversationMessages.appendChild(message);
+        conversationMessages.parentNode.insertBefore(message, typingIndicator);
       }
-
-      saveConversationState();
-      scrollToLatest();
-      return message;
+      saveConversationState(); scrollToLatest(); return message;
     }
 
     // Update Sam's status and show the animated typing indicator.
     function startTyping() {
       samStatus.textContent = "Sam is typing";
-      samStatus.classList.add("typing");
-      samStatus.classList.remove("online");
-
-      typingIndicator.hidden = false;
+      samStatus.classList.add("typing"); samStatus.classList.remove("online");
+      if (isPostQuiz()) {
+        typingIndicator.hidden = true;
+        typingIndicatorPost.hidden = false;
+      } else {
+        typingIndicator.hidden = false;
+        typingIndicatorPost.hidden = true;
+      }
       scrollToLatest();
     }
-
-    // Hide the typing indicator when Sam has finished.
     function stopTyping() {
       typingIndicator.hidden = true;
-
+      typingIndicatorPost.hidden = true;
       samStatus.textContent = "online";
-      samStatus.classList.remove("typing");
-      samStatus.classList.add("online");
+      samStatus.classList.remove("typing"); samStatus.classList.add("online");
     }
 
     // Sam types, pauses, and then sends a message.
@@ -492,7 +491,6 @@
     const quizExtraActions = document.getElementById("quizExtraActions");
     const skipQuizButton = document.getElementById("skipQuizButton");
     const showAnswerButton = document.getElementById("showAnswerButton");
-    let finalFollowUpSent = false;
 
     async function sendFinalInsight() {
       if (finalFollowUpSent) return;
@@ -517,7 +515,6 @@
     async function startAgencyTeaching() {
       setConversationPhase("agency-intro");
       await samReplies([
-        "Right? Apps guess from patterns, not facts.",
         "We can control what clues we leave. I found 3 quick things that help me."
       ]);
       showOptions([{ label: "Show me", action: teachTip1 }]);
@@ -550,8 +547,7 @@
     async function teachWrapUp() {
       setConversationPhase("agency-done");
       await samReplies([
-        "Predictions aren't facts about you.",
-        "But you can choose what traces you leave behind."
+        "Try out this game with some questions along the way!",
       ]);
       await wait(700);
       const embed = document.getElementById("horseRaceEmbed");
