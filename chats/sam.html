@@ -129,8 +129,15 @@
         </section>
 
         <div class="date-divider" id="finalDateDivider" hidden></div>
-
         <div id="postQuizMessages"></div>
+
+        <!-- HORSE RACE EMBED - PLAY above image -->
+        <div id="horseRaceEmbed" style="display:none; margin:24px 16px 36px; text-align:center;">
+          <a href="../minigames/horse_race.html" style="display:inline-flex; align-items:center; justify-content:center; width:100%; max-width:320px; background:#1a1a1a; color:#fff; font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; padding:14px 32px; border-radius:14px; text-decoration:none; box-shadow:0 5px 0 #000, 0 8px 20px rgba(0,0,0,0.22); margin-bottom:14px;">▶ PLAY</a>
+          <div style="border-radius:18px; overflow:hidden; background:#78C96E; box-shadow:0 8px 24px rgba(0,0,0,0.12); border:2px solid #e8e8e8;">
+            <img src="/img/horse_race.png" alt="Horse Race" style="width:100%; display:block; image-rendering:pixelated; aspect-ratio:16/9; object-fit:cover;" onerror="this.src='../img/horse_race.png'">
+          </div>
+        </div>
 
       </div>
 
@@ -546,6 +553,13 @@
         "Predictions aren't facts about you.",
         "But you can choose what traces you leave behind."
       ]);
+      await wait(700);
+      const embed = document.getElementById("horseRaceEmbed");
+      if (embed) {
+        embed.style.display = "block";
+        embed.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      scrollToLatest();
     }
 
     // SKIP MUST: buttons disappear, NO feedback
