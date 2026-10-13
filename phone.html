@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat with Sam</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    // On small screens, skip the frame and open the page directly.
+    if (window.matchMedia("(max-width: 500px) and (pointer: coarse)").matches) {
+      location.replace(location.hash.slice(1) || "index.html");
+    }
+  </script>
+  <style>
+    :root { --phone-w: 390px; --phone-h: 844px; --bezel: 14px; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: #ece6dc;
+      font-family: 'Nunito', system-ui, sans-serif;
+      color: #1d1d1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      overflow: hidden;
+    }
+    .stage {
+      width: calc(var(--phone-w) + var(--bezel) * 2);
+      height: calc(var(--phone-h) + var(--bezel) * 2);
+      transform-origin: center center;
+      flex-shrink: 0;
+    }
+    .phone {
+      width: 100%;
+      height: 100%;
+      padding: var(--bezel);
+      background: #1b1b1d;
+      border-radius: 62px;
+      box-shadow: 0 0 0 2px #3a3a3e, 0 30px 70px rgba(0,0,0,0.25);
+      position: relative;
+    }
+    .screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 48px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .status {
+      height: 48px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 34px 0;
+      font-weight: 800;
+      font-size: 15px;
+      background: #fff;
+    }
+    .island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 118px;
+      height: 33px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 5;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+    .status-icons svg { display: block; }
+    iframe { flex: 1; width: 100%; border: 0; display: block; }
+    .home-bar {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.75);
+      pointer-events: none;
+    }
+    .side {
+      width: 340px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .side[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="phone">
+      <div class="screen">
+        <div class="island" aria-hidden="true"></div>
+        <div class="status" aria-hidden="true">
+          <span>9:41</span>
+          <span class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3" fill="none" stroke="#000" opacity=".4"/><rect x="2" y="2" width="19" height="8" rx="2"/><rect x="23.5" y="4" width="1.5" height="4" rx=".7" opacity=".4"/></svg>
+          </span>
+        </div>
+        <iframe id="screen" title="Phone screen"></iframe>
+        <div class="home-bar" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="side" id="side" hidden aria-label="Help next to the phone"></aside>
+
+  <script>
+    const frame = document.getElementById("screen");
+    const side = document.getElementById("side");
+    const stage = document.getElementById("stage");
+
+    frame.src = location.hash.slice(1) || "index.html";
+
+    // Scale the phone down so it always fits the window (e.g. on a projector).
+    function fit() {
+      const sideW = side.hidden ? 0 : side.offsetWidth + 40;
+      const s = Math.min(1, (innerHeight - 32) / stage.offsetHeight, (innerWidth - 32 - sideW) / stage.offsetWidth);
+      stage.style.transform = `scale(${s})`;
+      stage.style.margin = `${(stage.offsetHeight * (s - 1)) / 2}px ${(stage.offsetWidth * (s - 1)) / 2}px`;
+    }
+    addEventListener("resize", fit);
+    fit();
+
+    addEventListener("message", (e) => {
+      if (e.source !== frame.contentWindow || !e.data) return;
+      if (e.data.type === "phone:page") {
+        history.replaceState(null, "", "#" + e.data.path);
+        side.hidden = true;
+        side.innerHTML = "";
+        fit();
+      } else if (e.data.type === "phone:side") {
+        side.innerHTML = e.data.html;
+        side.hidden = !e.data.html;
+        fit();
+      }
+    });
+
+    side.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-side-action]");
+      if (el) frame.contentWindow.postMessage({ type: "phone:side-click", action: el.dataset.sideAction }, "*");
+    });
+  </script>
+</body>
+</html>
