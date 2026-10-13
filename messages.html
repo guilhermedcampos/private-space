@@ -6,6 +6,31 @@
   <title>Messages | Private Space</title>
 
   <link rel="stylesheet" href="style.css">
+  <style>
+    .messages-app { display: flex; flex-direction: column; }
+    .conversation { position: relative; }
+    .conversation-activities { position: absolute; right: 12px; bottom: 17px; display: flex; gap: 5px; }
+    .conversation:has(.conversation-activities) .preview { padding-right: 81px; }
+    .conversation:has(.conversation-activities > :last-child:nth-child(2)) .preview { padding-right: 54px; }
+    .conversation-activities .activity-icon { width: 22px; height: 22px; }
+    .conversation-activities .activity-icon svg { width: 16px; height: 16px; }
+    .activity-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: #eee9ff;
+      color: #714ed0;
+      flex-shrink: 0;
+    }
+    .activity-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .activity-legend { margin-top: auto; padding-top: 32px; color: #718198; font-size: 12px; }
+    .activity-legend p { margin: 0 0 10px; text-align: center; font-weight: 800; }
+    .activity-legend-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+    .activity-legend-items > span { display: inline-flex; align-items: center; gap: 6px; }
+  </style>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +38,21 @@
 </head>
 
 <body class="app-body">
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position: absolute; overflow: hidden;">
+    <defs>
+      <symbol id="icon-reading" viewBox="0 0 24 24">
+        <path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/>
+      </symbol>
+      <symbol id="icon-games" viewBox="0 0 24 24">
+        <path d="M7 7h10c2 0 3 2 3.5 4l1 6c.4 3-2 4-4 2l-3-3h-5l-3 3c-2 2-4.4 1-4-2l1-6C4 9 5 7 7 7Z"/>
+        <path d="M8 10v5m-2.5-2.5h5m5-1h.01m2 2h.01"/>
+      </symbol>
+      <symbol id="icon-video" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="3"/>
+        <path d="m10 9 5 3-5 3Z"/>
+      </symbol>
+    </defs>
+  </svg>
 
   <main class="messages-app">
 
@@ -44,6 +84,10 @@
           </div>
           <p class="preview">Hey, are you free? Something weird just happened...</p>
         </div>
+        <div class="conversation-activities">
+          <span class="activity-icon" role="img" aria-label="Reading" title="Reading"><svg aria-hidden="true"><use href="#icon-reading"/></svg></span>
+          <span class="activity-icon" role="img" aria-label="Games" title="Games"><svg aria-hidden="true"><use href="#icon-games"/></svg></span>
+        </div>
       </a>
 
       <a class="conversation" href="chats/mum.html">
@@ -56,6 +100,11 @@
             <span class="time">2m</span>
           </div>
           <p class="preview">That cookies thing 🍪 I clicked accept all and now...</p>
+        </div>
+        <div class="conversation-activities">
+          <span class="activity-icon" role="img" aria-label="Reading" title="Reading"><svg aria-hidden="true"><use href="#icon-reading"/></svg></span>
+          <span class="activity-icon" role="img" aria-label="Video" title="Video"><svg aria-hidden="true"><use href="#icon-video"/></svg></span>
+          <span class="activity-icon" role="img" aria-label="Games" title="Games"><svg aria-hidden="true"><use href="#icon-games"/></svg></span>
         </div>
       </a>
 
@@ -73,6 +122,15 @@
       </a>
 
     </section>
+
+    <footer class="activity-legend" aria-label="Activity icon legend">
+      <p>Chat activities</p>
+      <div class="activity-legend-items">
+        <span><span class="activity-icon"><svg aria-hidden="true"><use href="#icon-reading"/></svg></span>Reading</span>
+        <span><span class="activity-icon"><svg aria-hidden="true"><use href="#icon-games"/></svg></span>Games</span>
+        <span><span class="activity-icon"><svg aria-hidden="true"><use href="#icon-video"/></svg></span>Video</span>
+      </div>
+    </footer>
 
   </main>
 
