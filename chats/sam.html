@@ -31,7 +31,9 @@
         aria-label="Back to messages"
       >‹</a>
 
-      <div class="chat-avatar avatar-sam" aria-hidden="true">S</div>
+      <div class="chat-avatar avatar-sam" aria-hidden="true" style="overflow:hidden; padding:0; background:#e8dcc8;">
+        <img src="../img/sam.png" alt="Sam" style="width:100%;height:100%;object-fit:cover;border-radius:50%;image-rendering:pixelated; display:block;">
+      </div>
 
       <div class="contact-details">
         <div class="contact-name">Sam</div>
@@ -210,12 +212,15 @@
       const state = readConversationState() || {};
       state.started = conversationStarted;
       state.phase = conversationPhase;
+      state.finalFollowUpSent = finalFollowUpSent;
+      state.embedVisible = document.getElementById("horseRaceEmbed")?.style.display !== "none";
+      // now these actually have children
       state.messages = [...conversationMessages.children].map((m) => ({
-        text: m.textContent,
+        text: m.innerHTML,
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
-      state.postMessages = [...(postQuizMessages?.children || [])].filter(el => el.id !== 'typingIndicatorPost').map((m) => ({
-        text: m.textContent,
+      state.postMessages = [...postQuizMessages.children].map((m) => ({
+        text: m.innerHTML,
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
       state.quizAnswer = state.quizAnswer || null;
@@ -252,9 +257,9 @@
       message.classList.add("bubble", sender);
       message.innerHTML = text;
       if (isPostQuiz() && postQuizMessages) {
-        postQuizMessages.parentNode.insertBefore(message, typingIndicatorPost);
+        postQuizMessages.appendChild(message);
       } else {
-        conversationMessages.parentNode.insertBefore(message, typingIndicator);
+        conversationMessages.appendChild(message);
       }
       saveConversationState(); scrollToLatest(); return message;
     }
@@ -554,6 +559,7 @@
       if (embed) {
         embed.style.display = "block";
         embed.scrollIntoView({ behavior: "smooth", block: "center" });
+        saveConversationState(); // <-- saves embedVisible = true
       }
       scrollToLatest();
     }
@@ -562,7 +568,7 @@
     skipQuizButton?.addEventListener("click", () => {
       feedback.hidden = true;
       feedback.textContent = "";
-      replyPanel.hidden = false;
+      replyPanel.hidden = true; // <- was false, hid old options
       if (quizExtraActions) quizExtraActions.hidden = true;
       quizChoices.forEach(b => b.disabled = true);
       sendFinalInsight();
@@ -584,15 +590,9 @@
         const isCorrect = choice.dataset.answer === "correct";
         const state = readConversationState() || {};
         state.quizAnswer = isCorrect ? "correct" : "incorrect";
-        sessionStorage.setItem(conversationStorageKey, JSON.stringify({
-          ...state,
-          started: conversationStarted,
-          phase: "quiz",
-          messages: [...conversationMessages.children].map((message) => ({
-            text: message.textContent,
-            sender: message.classList.contains("sent") ? "sent" : "received"
-          }))
-        }));
+        setConversationPhase("quiz");
+        // use the fixed save that includes postMessages
+        saveConversationState();
 
         feedback.hidden = false;
         feedback.textContent = isCorrect
@@ -616,6 +616,9 @@
 
       conversationStarted = true;
       conversationPhase = state.phase || "first-response";
+      finalFollowUpSent = state.finalFollowUpSent || false;
+      const embed = document.getElementById("horseRaceEmbed");
+      if (state.embedVisible && embed) embed.style.display = "block";
       unlockedConversation.hidden = false;
       replyPanel.hidden = true;
       conversationMessages.replaceChildren();
@@ -624,13 +627,13 @@
       (state.messages || []).forEach(({ text, sender }) => {
         const m = document.createElement("div");
         m.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
-        m.textContent = text;
+        m.innerHTML = text;
         conversationMessages.appendChild(m);
       });
       (state.postMessages || []).forEach(({ text, sender }) => {
         const m = document.createElement("div");
         m.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
-        m.textContent = text;
+        m.innerHTML = text;
         postQuizMessages.appendChild(m);
       });
 
@@ -653,13 +656,18 @@
           finalDateDivider.textContent = "Today";
           finalDateDivider.hidden = false;
         }
-        finalFollowUpSent = true;
-
-        if (conversationPhase === "agency-intro") startAgencyTeaching();
-        else if (conversationPhase === "agency-tip1") teachTip1();
-        else if (conversationPhase === "agency-tip2") teachTip2();
-        else if (conversationPhase === "agency-tip3") teachTip3();
-        else if (conversationPhase === "agency-done") teachWrapUp();
+        // FIX: don't re-send the tip message, just show the next button
+        if (conversationPhase === "agency-intro") {
+          showOptions([{ label: "Show me", action: teachTip1 }]);
+        } else if (conversationPhase === "agency-tip1") {
+          showOptions([{ label: "Okay", action: teachTip2 }]);
+        } else if (conversationPhase === "agency-tip2") {
+          showOptions([{ label: "Got it", action: teachTip3 }]);
+        } else if (conversationPhase === "agency-tip3") {
+          showOptions([{ label: "Makes sense", action: teachWrapUp }]);
+        } else if (conversationPhase === "agency-done") {
+          // embed already visible from state.embedVisible
+        }
       } else {
         lesson.hidden = true;
         if (conversationPhase === "challenge-options") showChallengeOptions();
@@ -668,7 +676,6 @@
       }
       requestAnimationFrame(scrollToLatest);
     }
-
     // Keep the example response's available choices reusable after a return visit.
     function showExampleOptions() {
       setConversationPhase("example-options");
