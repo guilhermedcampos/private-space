@@ -19,7 +19,7 @@
 
 </head>
 
-<body class="app-body">
+<body class="app-body" data-contact="Sam">
 
   <main class="chat-app">
 
@@ -43,7 +43,15 @@
         </div>
       </div>
 
-      <div class="more-button" aria-hidden="true">⋯</div>
+      <div class="header-actions">
+        <button class="pill-button small" id="summaryButton" type="button" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg>
+          Summary
+        </button>
+        <button class="round-button small" id="rewindButton" type="button" aria-label="Start this chat again" title="Start this chat again">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+      </div>
     </header>
 
     <!-- Conversation area -->
@@ -91,7 +99,7 @@
         <section class="lesson" aria-labelledby="quizHeading">
 
           <h2 class="lesson-heading" id="quizHeading">
-            Online Activity Can Reveal Your Interests
+            Detective Challenge
           </h2>
 
           <p class="lesson-intro">
@@ -118,16 +126,11 @@
             <div id="feedback" role="status" aria-live="polite" hidden></div>
           </div>
 
-          <!-- NEW: Skip / Show answer -->
+          <!-- Skipping a question always shows its answer (same in every quiz) -->
           <div id="quizExtraActions" style="display: grid; gap: 10px; margin-top: 16px;">
-            <button id="skipQuizButton" class="reply-button" type="button">Skip</button>
-            <button id="showAnswerButton" class="reply-button" type="button">Show answer</button>
+            <button id="continueQuizButton" class="reply-button primary" type="button" hidden>Continue chatting →</button>
+            <button id="showAnswerButton" class="reply-button" type="button">Skip, show me the answer</button>
           </div>
-
-          <!-- Back link now BELOW those options -->
-          <a class="back-to-messages" href="../messages.html">
-            ← Back to all messages
-          </a>
 
         </section>
 
@@ -144,7 +147,11 @@
           <div style="border-radius:18px; overflow:hidden; background:#78C96E; box-shadow:0 8px 24px rgba(0,0,0,0.12); border:2px solid #e8e8e8;">
             <img src="/img/horse_race.png" alt="Horse Race" style="width:100%; display:block; image-rendering:pixelated; aspect-ratio:16/9; object-fit:cover;" onerror="this.src='../img/horse_race.png'">
           </div>
+          <button class="reply-button game-skip" id="skipGameButton" type="button">Skip, show me the summary</button>
         </div>
+
+        <!-- Sam's message after the horse race appears below the game -->
+        <div id="afterGameMessages"></div>
 
       </div>
 
@@ -167,6 +174,14 @@
 
         <button
           class="reply-button"
+          id="summaryRequestButton"
+          type="button"
+        >
+          Just send me the summary
+        </button>
+
+        <button
+          class="reply-button"
           id="laterButton"
           type="button"
         >
@@ -183,6 +198,7 @@
 
   </main>
 
+  <script src="../tools.js"></script>
   <script>
     const typingIndicator = document.getElementById("typingIndicator");
     const typingIndicatorPost = document.getElementById("typingIndicatorPost");
@@ -190,6 +206,8 @@
     const dateDivider = document.getElementById("dateDivider");
     const finalDateDivider = document.getElementById("finalDateDivider");
     const postQuizMessages = document.getElementById("postQuizMessages");
+    const afterGameMessages = document.getElementById("afterGameMessages");
+    let afterGame = false; // true while Sam reacts to a finished race
     const lesson = document.querySelector(".lesson");
 
     let conversationStarted = false;
@@ -198,6 +216,9 @@
     const conversationStorageKey = "private-space-sam-conversation";
     let conversationPhase = "initial";
     let finalFollowUpSent = false; // <- moved to top
+    let summaryShared = false; // learner asked for the summary at the start
+    let gameSkipped = false;
+    let quizAnswer = null;     // "correct", "incorrect", or "shown" (skipped)   // learner chose the summary instead of the horse race
     function isPostQuiz() { return finalFollowUpSent || conversationPhase.startsWith("agency"); }
 
 
@@ -224,7 +245,13 @@
         text: m.innerHTML,
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
-      state.quizAnswer = state.quizAnswer || null;
+      state.quizAnswer = quizAnswer;
+      state.afterGameMessages = [...afterGameMessages.children].map((m) => ({
+        text: m.innerHTML,
+        sender: m.classList.contains("sent") ? "sent" : "received"
+      }));
+      state.summaryShared = summaryShared;
+      state.gameSkipped = gameSkipped;
       sessionStorage.setItem(conversationStorageKey, JSON.stringify(state));
     }
 
@@ -257,7 +284,9 @@
       const message = document.createElement("div");
       message.classList.add("bubble", sender);
       message.innerHTML = text;
-      if (isPostQuiz() && postQuizMessages) {
+      if (afterGame) {
+        afterGameMessages.appendChild(message);
+      } else if (isPostQuiz() && postQuizMessages) {
         postQuizMessages.appendChild(message);
       } else {
         conversationMessages.appendChild(message);
@@ -286,8 +315,8 @@
     }
 
     // Sam types, pauses, and then sends a message.
-    async function samReplies(messages, firstDelay = 2500) {
-      await wait(2000);
+    async function samReplies(messages, firstDelay = 1200) {
+      await wait(600);
       for (let i = 0; i < messages.length; i++) {
         startTyping();
 
@@ -363,7 +392,7 @@
       await samReplies([
         'I read apps can figure out things about people from their <strong>online activity</strong>.',
         'Like, they might use what you <strong>watch</strong> or <strong>search</strong> for to make predictions about your interests.'
-      ], 2500);
+      ]);
       // samReplies() displays the options when Sam finishes.
     }
 
@@ -478,13 +507,44 @@
       replyPanel.hidden = true;
 
       // Only show the selected reply.
-      addMessage("Sure, what is it?", "sent");
+      addMessage(continueButton.querySelector("span").textContent, "sent");
 
       // Sam starts typing after the user's reply.
       await firstConversationStage();
 
       // Wait until Sam has finished both messages before offering replies.
       handleFirstResponse();
+    });
+
+    // Sam sends the summary as a document, then the chat carries on as usual.
+    async function sendSummary(request, reply) {
+      addMessage(request, "sent");
+      await samReplies([reply, Tools.summaryCardHTML("sam")]);
+    }
+
+    function showOpeningOptions() {
+      continueButton.querySelector("span").textContent = "Okay, tell me more";
+      summaryRequestButton.hidden = true;
+      replyPanel.hidden = false;
+      continueButton.focus({ preventScroll: true });
+    }
+
+    summaryRequestButton.addEventListener("click", async () => {
+      if (summaryShared || conversationStarted) return;
+      summaryShared = true;
+      replyPanel.hidden = true;
+      unlockedConversation.hidden = false;
+      await sendSummary("Can you just send me the summary?", "Sure! Here are the main points. Tap to open it.");
+      await samReplies(["We can still chat about it, if you want."], 900);
+      showOpeningOptions();
+    });
+
+    skipGameButton.addEventListener("click", async () => {
+      if (gameSkipped) return;
+      gameSkipped = true;
+      document.getElementById("horseRaceEmbed").style.display = "none";
+      await sendSummary("I'll skip the game. Can I see the summary?", "Of course! Here are the main points.");
+      await samReplies(["If you want to play later, rewind the chat with the ↺ button at the top."], 900);
     });
 
     laterButton.addEventListener("click", () => {
@@ -495,7 +555,6 @@
     const quizChoices = document.querySelectorAll(".quiz-choice");
     const feedback = document.getElementById("feedback");
     const quizExtraActions = document.getElementById("quizExtraActions");
-    const skipQuizButton = document.getElementById("skipQuizButton");
     const showAnswerButton = document.getElementById("showAnswerButton");
 
     async function sendFinalInsight() {
@@ -562,68 +621,97 @@
         embed.scrollIntoView({ behavior: "smooth", block: "center" });
         saveConversationState(); // <-- saves embedVisible = true
       }
+      showEndOptions();
+    }
+
+    // Back from the horse race: Sam sends one last message about it, then the chat ends.
+    async function reactToGame() {
+      let result = null;
+      try { result = sessionStorage.getItem("horse-race-result"); } catch { /* storage unavailable */ }
+      if (!result) { showEndOptions(); return; }
+      try { sessionStorage.removeItem("horse-race-result"); } catch { /* storage unavailable */ }
+      afterGame = true;
+      afterGameMessages.after(typingIndicatorPost); // typing dots show below the game too
+      await samReplies([result === "won"
+        ? "You won the horse race! Those privacy tips are sticking. Thanks for chatting with me!"
+        : "You played the horse race! The trackers won this time, but you can play again whenever you want. Thanks for chatting with me!"]);
+      showEndOptions();
+    }
+
+    // The chat is finished: offer the way back, like at the end of Mum's chat.
+    function showEndOptions() {
+      const optionsContainer = replyPanel.querySelector(".reply-options");
+      const back = document.createElement("a");
+      back.className = "back-to-messages";
+      back.href = "../messages.html";
+      back.textContent = "← Back to all messages";
+      optionsContainer.replaceChildren(back);
+      replyPanel.hidden = false;
       scrollToLatest();
     }
 
-    // SKIP MUST: buttons disappear, NO feedback
-    skipQuizButton?.addEventListener("click", () => {
-      feedback.hidden = true;
-      feedback.textContent = "";
-      replyPanel.hidden = true; // <- was false, hid old options
-      if (quizExtraActions) quizExtraActions.hidden = true;
-      quizChoices.forEach(b => b.disabled = true);
-      sendFinalInsight();
-    });
-
-    showAnswerButton?.addEventListener("click", () => {
+    // Same pattern as every quiz: answer or skip, see the answer, then "Continue chatting →".
+    const continueQuizButton = document.getElementById("continueQuizButton");
+    const quizFeedback = {
+      correct: "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them.",
+      incorrect: "Not quite, and that's okay! The answer is B. Your online activity can give apps clues about your interests.",
+      shown: "The answer is B. Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them."
+    };
+    function showQuizResult(result) {
+      quizAnswer = result;
       feedback.hidden = false;
-      feedback.textContent = "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them.";
-      quizChoices.forEach(b => {
-        b.disabled = true;
-        if (b.dataset.answer === "correct") b.classList.add("correct-answer");
+      feedback.textContent = quizFeedback[result];
+      quizChoices.forEach((button) => {
+        button.disabled = true;
+        if (button.dataset.answer === "correct") button.classList.add("correct-answer");
       });
-      if (quizExtraActions) quizExtraActions.hidden = true;
-      sendFinalInsight();
-    });
-
+      showAnswerButton.hidden = true;
+      continueQuizButton.hidden = finalFollowUpSent;
+      if (!finalFollowUpSent) continueQuizButton.focus({ preventScroll: true });
+      saveConversationState();
+    }
+    showAnswerButton.addEventListener("click", () => showQuizResult("shown"));
     quizChoices.forEach((choice) => {
-      choice.addEventListener("click", () => {
-        const isCorrect = choice.dataset.answer === "correct";
-        const state = readConversationState() || {};
-        state.quizAnswer = isCorrect ? "correct" : "incorrect";
-        setConversationPhase("quiz");
-        // use the fixed save that includes postMessages
-        saveConversationState();
-
-        feedback.hidden = false;
-        feedback.textContent = isCorrect
-          ? "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them."
-          : "Not quite, and that's okay! Your online activity can provide clues about your interests.";
-
-        quizChoices.forEach((button) => {
-          button.disabled = true;
-          if (button.dataset.answer === "correct") button.classList.add("correct-answer");
-        });
-
-        if (quizExtraActions) quizExtraActions.hidden = true;
-        sendFinalInsight();
-      });
+      choice.addEventListener("click", () => showQuizResult(choice.dataset.answer === "correct" ? "correct" : "incorrect"));
     });
+    continueQuizButton.addEventListener("click", sendFinalInsight);
 
     // Restore the saved conversation and return to the matching choice point.
     function restoreConversation() {
       const state = readConversationState();
+      if (state && !state.started && state.summaryShared) {
+        summaryShared = true;
+        unlockedConversation.hidden = false;
+        (state.messages || []).forEach(({ text, sender }) => {
+          const m = document.createElement("div");
+          m.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
+          m.innerHTML = text;
+          conversationMessages.appendChild(m);
+        });
+        showOpeningOptions();
+        requestAnimationFrame(scrollToLatest);
+        return;
+      }
       if (!state || !state.started) return;
+      summaryShared = state.summaryShared || false;
+      gameSkipped = state.gameSkipped || false;
 
       conversationStarted = true;
       conversationPhase = state.phase || "first-response";
       finalFollowUpSent = state.finalFollowUpSent || false;
       const embed = document.getElementById("horseRaceEmbed");
-      if (state.embedVisible && embed) embed.style.display = "block";
+      if (state.embedVisible && !gameSkipped && embed) embed.style.display = "block";
       unlockedConversation.hidden = false;
       replyPanel.hidden = true;
       conversationMessages.replaceChildren();
       postQuizMessages.replaceChildren();
+      afterGameMessages.replaceChildren();
+      (state.afterGameMessages || []).forEach(({ text, sender }) => {
+        const m = document.createElement("div");
+        m.className = `bubble ${sender === "sent" ? "sent" : "received"}`;
+        m.innerHTML = text;
+        afterGameMessages.appendChild(m);
+      });
 
       (state.messages || []).forEach(({ text, sender }) => {
         const m = document.createElement("div");
@@ -642,17 +730,8 @@
         conversationFinished = true;
         dateDivider.hidden = false;
         lesson.hidden = false;
-        if (state.quizAnswer) {
-          quizChoices.forEach((c) => {
-            c.disabled = true;
-            if (c.dataset.answer === "correct") c.classList.add("correct-answer");
-          });
-          feedback.hidden = false;
-          feedback.textContent = state.quizAnswer === "correct"
-            ? "Exactly! Apps can use patterns in your activity to predict your interests."
-            : "Not quite, and that's okay! Your online activity can provide clues.";
-        }
-        if (quizExtraActions) quizExtraActions.hidden = true;
+        if (state.quizAnswer) showQuizResult(state.quizAnswer);
+        if (finalFollowUpSent && quizExtraActions) quizExtraActions.hidden = true;
         if (finalDateDivider) {
           finalDateDivider.textContent = "Today";
           finalDateDivider.hidden = false;
@@ -667,7 +746,7 @@
         } else if (conversationPhase === "agency-tip3") {
           showOptions([{ label: "Makes sense", action: teachWrapUp }]);
         } else if (conversationPhase === "agency-done") {
-          // embed already visible from state.embedVisible
+          reactToGame();
         }
       } else {
         lesson.hidden = true;
@@ -686,7 +765,13 @@
       ]);
     }
 
+    Tools.mountChatHeader({ summary: "sam", storageKey: conversationStorageKey });
+
     restoreConversation();
+    // Coming back with the browser's Back button can skip the restore above.
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted && conversationPhase === "agency-done") reactToGame();
+    });
   </script>
 </body>
 </html>

@@ -31,31 +31,6 @@
     .activity-legend p { margin: 0 0 10px; text-align: center; font-weight: 800; }
     .activity-legend-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
     .activity-legend-items > span { display: inline-flex; align-items: center; gap: 6px; }
-    .notes-button { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border: none; border-radius: 20px; background: linear-gradient(145deg, #5579ff, #865be8); color: #fff; font: 800 14px 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 7px 16px #5579ff3b; }
-    .notes-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .notes-sheet { position: fixed; inset: 0; z-index: 50; background: rgba(20, 24, 40, 0.35); display: flex; justify-content: center; }
-    .notes-sheet[hidden] { display: none; }
-    .notes-panel { width: 100%; max-width: 520px; background: #fff; overflow-y: auto; padding: 20px 18px 32px; font-family: 'Nunito', sans-serif; color: #1f2a3d; }
-    .notes-top { display: flex; align-items: center; justify-content: space-between; }
-    .notes-top h2 { margin: 0; font-size: 26px; font-weight: 800; }
-    .notes-close { border: 1px solid #dfe5f2; background: #fff; border-radius: 16px; padding: 8px 14px; font: 800 14px 'Nunito', sans-serif; color: #1f2a3d; cursor: pointer; }
-    .notes-intro { margin: 8px 0 18px; color: #5d6b82; font-size: 15px; line-height: 1.4; }
-    .notes-form { background: #f4f7ff; border: 1px solid #e9eef9; border-radius: 18px; padding: 14px; margin-bottom: 18px; }
-    .notes-label { display: block; font-weight: 800; font-size: 13px; color: #5d6b82; margin-bottom: 6px; }
-    .notes-form textarea { width: 100%; box-sizing: border-box; border: 1px solid #dfe5f2; border-radius: 12px; padding: 10px; font: 600 15px 'Nunito', sans-serif; resize: vertical; }
-    .notes-form-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-    .notes-form-row .notes-label { margin: 0; }
-    .notes-form select { border: 1px solid #dfe5f2; border-radius: 10px; padding: 7px; font: 700 14px 'Nunito', sans-serif; background: #fff; }
-    .notes-save { margin-left: auto; border: none; border-radius: 14px; padding: 9px 16px; background: #5579ff; color: #fff; font: 800 14px 'Nunito', sans-serif; cursor: pointer; }
-    .notes-search { display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 14px; border-radius: 22px; background: #f4f7ff; border: 1px solid #e9eef9; color: #8b9bb2; margin-bottom: 14px; }
-    .notes-search input { border: none; background: transparent; outline: none; flex: 1; font: 600 15px 'Nunito', sans-serif; }
-    .notes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-    .note { border: 1px solid #e9eef9; border-radius: 16px; padding: 12px 14px; }
-    .note-text { margin: 0 0 8px; font-size: 15px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .note-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #718198; font-weight: 700; }
-    .note-tag { background: #eee9ff; color: #714ed0; border-radius: 8px; padding: 2px 8px; }
-    .note-delete { margin-left: auto; border: none; background: none; box-shadow: none; padding: 4px; width: auto; height: auto; transform: none; color: #718198; font: 800 12px 'Nunito', sans-serif; cursor: pointer; text-decoration: underline; }
-    .notes-empty { color: #718198; text-align: center; font-size: 14px; }
   </style>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,10 +62,15 @@
         <h1>Messages</h1>
       </div>
 
-      <button class="notes-button" id="notesOpen" type="button" aria-haspopup="dialog" aria-controls="notesSheet">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg>
-        Notes
-      </button>
+      <div class="header-actions">
+        <button class="round-button" type="button" aria-label="Settings" onclick="Tools.openSettings()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        </button>
+        <button class="pill-button" type="button" aria-haspopup="dialog" onclick="Tools.openNotes()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg>
+          Notes
+        </button>
+      </div>
     </header>
 
     <label class="search-box">
@@ -131,7 +111,6 @@
         <div class="conversation-activities">
           <span class="activity-icon" role="img" aria-label="Reading" title="Reading"><svg aria-hidden="true"><use href="#icon-reading"/></svg></span>
           <span class="activity-icon" role="img" aria-label="Video" title="Video"><svg aria-hidden="true"><use href="#icon-video"/></svg></span>
-          <span class="activity-icon" role="img" aria-label="Games" title="Games"><svg aria-hidden="true"><use href="#icon-games"/></svg></span>
         </div>
       </a>
 
@@ -161,39 +140,7 @@
 
   </main>
 
-  <div class="notes-sheet" id="notesSheet" role="dialog" aria-modal="true" aria-labelledby="notesTitle" hidden>
-    <div class="notes-panel">
-      <header class="notes-top">
-        <h2 id="notesTitle">My notes</h2>
-        <button class="notes-close" id="notesClose" type="button">Close</button>
-      </header>
-      <p class="notes-intro">Write down anything you found useful. This is optional. Your notes stay only on this device.</p>
-
-      <form class="notes-form" id="notesForm">
-        <label class="notes-label" for="noteText">New note</label>
-        <textarea id="noteText" rows="3" placeholder="For example: Incognito doesn't make me invisible."></textarea>
-        <div class="notes-form-row">
-          <label class="notes-label" for="noteChat">From</label>
-          <select id="noteChat">
-            <option>General</option>
-            <option>Sam</option>
-            <option>Mum</option>
-            <option>Alex</option>
-          </select>
-          <button class="notes-save" type="submit">Save note</button>
-        </div>
-      </form>
-
-      <label class="notes-search">
-        <span aria-hidden="true">⌕</span>
-        <input id="notesSearch" type="search" placeholder="Search my notes" aria-label="Search my notes">
-      </label>
-
-      <ul class="notes-list" id="notesList"></ul>
-      <p class="notes-empty" id="notesEmpty">No notes yet.</p>
-    </div>
-  </div>
-
+  <script src="tools.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -6,6 +6,16 @@
   const rel = location.href.startsWith(root) ? location.href.slice(root.length) || "index.html" : "";
   const inFrame = window.self !== window.top;
 
+  // Calm mode (Settings): no movement and no celebration effects, on every page.
+  const calmStyle = document.createElement("style");
+  calmStyle.textContent =
+    "html.calm *, html.calm *::before, html.calm *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }" +
+    "html.calm .confetti-fall, html.calm .dust-puff, html.calm .celebration, html.calm .emoji-drop, html.calm .cloud-drift { display: none !important; }";
+  document.head.appendChild(calmStyle);
+  try {
+    if (JSON.parse(localStorage.getItem("private-space-calm")) === true) document.documentElement.classList.add("calm");
+  } catch (e) { /* storage unavailable */ }
+
   if (!inFrame) {
     // Real phones are already phone-sized; ?nophone opens a page on its own.
     const isPhone = window.matchMedia("(max-width: 500px) and (pointer: coarse)").matches;

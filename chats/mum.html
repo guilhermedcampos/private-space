@@ -7,13 +7,6 @@
   <title>Mum | Private Space</title>
   <link rel="stylesheet" href="../style.css">
   <style>
-    .more-button { cursor: pointer; font-family: inherit; }
-    .activity-menu { position: absolute; top: 88px; right: 12px; left: 12px; z-index: 5; max-height: calc(100% - 110px); overflow-y: auto; padding: 18px; background: white; border: 1px solid #dce4f3; border-radius: 18px; box-shadow: 0 12px 35px #30466130; }
-    .activity-menu h2 { margin: 0 0 14px; font-size: 18px; }
-    .activity-menu-actions { display: grid; gap: 10px; }
-    .activity-menu button:disabled { opacity: .5; cursor: default; }
-    .activity-menu .lesson { margin-top: 16px; }
-    .replay-feedback { margin: 14px 0; color: #304661; font-size: 14px; line-height: 1.6; }
     .video-guide { margin-bottom: 22px; }
     .guide-row { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
     .guide-row legend { font-size: 13px; font-weight: 900; margin-bottom: 10px; color: #425671; }
@@ -28,12 +21,16 @@
     .guide-player iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 14px; }
     .guide-caption { font-size: 13px; font-weight: 800; margin: 0 0 10px; }
     .guide-hint { font-size: 12px; color: #718198; line-height: 1.5; margin: 14px 0 0; }
+    .guide-views { margin-bottom: 12px; }
+    .guide-views .guide-choice { min-height: 48px; }
+    .guide-steps { margin: 0; padding-left: 22px; color: #304661; font-size: 15px; line-height: 1.5; font-weight: 600; }
+    .guide-steps li { margin-bottom: 8px; }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="app-body">
+<body class="app-body" data-contact="Mum">
   <main class="chat-app">
     <header class="chat-header">
       <a class="back-button" href="../messages.html" aria-label="Back to messages">‹</a>
@@ -44,34 +41,48 @@
         <div class="contact-name">Mum</div>
         <div class="contact-status online" id="mumStatus">online</div>
       </div>
-      <button class="more-button" id="chatMenuButton" type="button" aria-label="Chat options" aria-expanded="false" aria-controls="activityMenu">⋯</button>
-    </header>
-    <section class="activity-menu" id="activityMenu" aria-label="Chat options" hidden>
-      <div class="activity-menu-actions" id="menuActions">
-        <button class="reply-button" type="button" disabled>Notes</button>
-        <button class="reply-button" id="replayListButton" type="button">Replay Games &amp; Quizzes</button>
+      <div class="header-actions">
+        <button class="pill-button small" id="summaryButton" type="button" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg>
+          Summary
+        </button>
+        <button class="round-button small" id="rewindButton" type="button" aria-label="Start this chat again" title="Start this chat again">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
       </div>
-      <div id="activityList" hidden></div>
-      <div id="activityReplay" hidden></div>
-    </section>
+    </header>
     <section class="chat-content" id="chatContent" aria-label="Conversation with Mum">
       <div class="story-label">Everything is fictional.</div>
       <div id="conversationMessages" role="log" aria-label="Chat messages" aria-live="polite" aria-relevant="additions"></div>
       <section class="lesson" id="cookieQuiz" aria-labelledby="cookieHeading" hidden>
-        <h2 class="lesson-heading" id="cookieHeading">🍪 Cookie Detective</h2>
+        <h2 class="lesson-heading" id="cookieHeading">Cookie Detective</h2>
         <p class="lesson-intro">Different cookies have different purposes. Which help the website function, and which may track browsing?</p>
         <div class="quiz-card">
           <p class="quiz-label" id="cookieProgress"></p>
           <h3 class="quiz-question" id="cookieQuestion" tabindex="-1"></h3>
           <div class="quiz-choices">
-            <button class="quiz-choice" id="functionalChoice" type="button">🛒 Functional</button>
-            <button class="quiz-choice" id="trackingChoice" type="button">👀 Tracking</button>
+            <button class="quiz-choice" id="functionalChoice" type="button">Functional</button>
+            <button class="quiz-choice" id="trackingChoice" type="button">Tracking</button>
           </div>
           <div id="feedback" role="status" aria-live="polite" hidden></div>
         </div>
         <div style="display: grid; gap: 10px; margin-top: 16px;">
           <button class="reply-button primary" id="nextCookie" type="button" hidden>Next cookie →</button>
-          <button class="reply-button" id="skipCookies" type="button">Skip the game</button>
+          <button class="reply-button" id="skipCookies" type="button">Skip, show me the answer</button>
+        </div>
+      </section>
+      <section class="lesson" id="schoolQuiz" aria-labelledby="schoolHeading" hidden>
+        <h2 class="lesson-heading" id="schoolHeading">Cookie School</h2>
+        <p class="lesson-intro">Imagine you visit a new website and this appears:</p>
+        <div class="quiz-card">
+          <p class="cookie-banner">🍪 We use cookies to improve your experience. Would you like to accept them?</p>
+          <h3 class="quiz-question" id="schoolQuestion" tabindex="-1">What would you choose?</h3>
+          <div class="quiz-choices" id="schoolChoices"></div>
+          <div class="quiz-feedback" id="schoolFeedback" role="status" aria-live="polite" hidden></div>
+        </div>
+        <div style="display: grid; gap: 10px; margin-top: 16px;">
+          <button class="reply-button primary" id="schoolContinue" type="button" hidden>Continue chatting →</button>
+          <button class="reply-button" id="schoolSkip" type="button">Skip, show me the answer</button>
         </div>
       </section>
       <div id="typingIndicator" class="bubble received" role="status" aria-label="Mum is typing" hidden>
@@ -86,7 +97,7 @@
   <template id="videoGuideTemplate">
     <section class="lesson video-guide" aria-label="Video guide: delete browser cookies">
       <h2 class="lesson-heading">🎬 How to delete cookies</h2>
-      <p class="lesson-intro">Choose your device and browser to find your video guide.</p>
+      <p class="lesson-intro">Choose your device and browser. Then watch a video or read the steps.</p>
       <div class="quiz-card">
         <fieldset class="guide-row">
           <legend>1. Which device do you use?</legend>
@@ -111,10 +122,11 @@
       </div>
     </section>
   </template>
+  <script src="../tools.js"></script>
   <script>
     // Each step contains Mum's messages followed by the user's available replies.
     const steps = [
-      { messages: ["Hey! Quick question… do you like cookies? 🍪"], replies: ["Uhm… yeah, who doesn't?", "Do you mean the chocolate chip kind?"] },
+      { messages: ["Hey! Quick question… do you like cookies? 🍪"], replies: ["Uhm… yeah, who doesn't?", "Do you mean the chocolate chip kind?", { label: "Just send me the summary", message: "Can you just send me the summary?", summary: true }, { label: "Not now. Remind me later.", later: true }] },
       { messages: ["Haha, same! But I mean internet cookies, not the chocolate chip kind."], replies: ["Wait… websites have cookies?", "I've heard of those. What are they?"] },
       { messages: ["Yep! Ever seen a pop-up saying ‘Accept all cookies’?"], replies: ["Ohhh, those annoying pop-ups!", "Yes, I see those all the time."] },
       { messages: ["Exactly! But do you know what you're accepting?"], replies: ["Not really. I usually just click accept.", "I sometimes check, but it's confusing."] },
@@ -132,16 +144,19 @@
       { messages: ["Usually, yes! Necessary cookies keep the website working. Optional ones aren't needed for that."], replies: ["Interesting. And do cookies stay forever?", "How long do cookies stay in my browser?"] },
       { messages: ["Nope! Some go away when you close the browser. Others stay until they expire or you delete them."], replies: ["I can delete cookies myself?", "Where can I manage them?"] },
       { messages: ["Yes! You can delete cookies in your browser settings. This may log you out of websites. The video guide below shows how. You can also watch it later."], replies: ["Okay, I think I'm starting to get it.", "Got it — deleting them can reset things."] },
-      { messages: ["Great! Let's see if you passed Cookie School.", "Imagine you visit a new website and this appears:", "🍪 We use cookies to improve your experience. Would you like to accept them?", "What would you choose?"], replies: [
-        { label: "I'd probably customize my preferences.", feedback: "Nice choice! Customising lets you pick which optional cookies are okay." },
-        { label: "I'd reject optional cookies.", feedback: "Good choice! You keep the cookies the website needs and say no to the rest, like advertising cookies." },
-        { label: "I'd accept all cookies.", feedback: "That's okay too. Just read the notice first so you know what you're allowing." }
-      ] },
-      { messages: [], replies: ["Haha, I guess I'm a cookie expert now.", "I know what to check next time!"] },
-      { messages: ["Almost! Just remember three things:", "1. Cookies help websites remember things.", "2. Some cookies can track what you browse.", "3. You can say no to optional tracking cookies."], replies: ["Got it!", "Useful cookies and tracking cookies aren't the same."] },
-      { messages: ["And now, whenever a cookie banner appears, you'll know what it's actually asking."], replies: ["Thanks, Mum!", "I'll read the options next time. Thanks, Mum!"] },
-      { messages: ["Anytime! Now go enjoy some real cookies. Those don't need consent. 🍪"], replies: [] }
+      { messages: ["Great! Let's see if you passed Cookie School."], replies: [] },
+      { messages: ["Before you go, remember three things:", "1. Cookies help websites remember things.", "2. Some cookies can track what you browse.", "3. You can say no to optional tracking cookies.", "Now, when a cookie banner appears, you'll know what it's asking. Go enjoy some real cookies! 🍪"], replies: [] }
     ];
+
+    // Cookie School (step 18) is a quiz card. Every choice is allowed; each gets its own feedback.
+    const COOKIE_SCHOOL_STEP = 18;
+    const cookieSchool = [
+      { label: "I'd customise my preferences.", feedback: "Nice choice! Customising lets you pick which optional cookies are okay." },
+      { label: "I'd reject optional cookies.", feedback: "Good choice! You keep the cookies the website needs and say no to the rest, like advertising cookies." },
+      { label: "I'd accept all cookies.", feedback: "That's okay too. Just read the notice first so you know what you're allowing." }
+    ];
+
+    const SCHOOL_ANSWER = "There's no single right answer. Customising or rejecting optional cookies gives you the most control. Accepting all is okay if you read the notice first.";
 
     const chatContent = document.getElementById("chatContent");
     const messages = document.getElementById("conversationMessages");
@@ -162,9 +177,13 @@
     function renderMessage(text, sender) {
       const bubble = document.createElement("div");
       bubble.className = `bubble ${sender}`;
-      bubble.textContent = text;
+      if (text === "[[summary]]") bubble.innerHTML = Tools.summaryCardHTML("mum");
+      else if (text.startsWith("[[done:")) {
+        bubble.className = "activity-done";
+        bubble.textContent = `✓ ${text.slice(7, -2)} done`;
+      } else bubble.textContent = text;
       messages.appendChild(bubble);
-      if (sender === "received" && text.startsWith("Of course! You can manage or delete stored cookies through your browser settings.")) renderVideoGuide();
+      if (sender === "received" && text.startsWith("Yes! You can delete cookies in your browser settings.")) renderVideoGuide();
       scrollToLatest();
     }
 
@@ -188,6 +207,27 @@
         edge: "https://www.youtube-nocookie.com/embed/TibIsMlEF3w?autoplay=0"
       }
     };
+    // The same guide as written steps, for learners who don't want to watch a video.
+    const cookieSteps = {
+      computer: {
+        chrome: ["Click the three dots (⋮) in the top-right corner.", "Click Delete browsing data.", "Next to Time range, choose All time.", "Tick Cookies and other site data.", "Click Delete data."],
+        firefox: ["Click the menu (☰) in the top-right corner.", "Click Settings.", "Click Privacy & Security on the left.", "Under Cookies and Site Data, click Clear Data.", "Tick Cookies and site data.", "Click Clear."],
+        safari: ["In the menu bar at the top, click Safari, then Settings.", "Click Privacy.", "Click Manage Website Data.", "Click Remove All.", "Click Remove Now."],
+        edge: ["Click the three dots (…) in the top-right corner.", "Click Settings.", "Click Privacy, search, and services.", "Under Clear browsing data, click Choose what to clear.", "Next to Time range, choose All time.", "Tick Cookies and other site data.", "Click Clear now."]
+      },
+      android: {
+        chrome: ["Tap the three dots (⋮) in the top-right corner.", "Tap Delete browsing data.", "Next to Time range, choose All time.", "Tick Cookies and site data.", "Tap Delete data."],
+        firefox: ["Tap the three dots (⋮).", "Tap Settings.", "Tap Delete browsing data.", "Tick Cookies and site data.", "Tap Delete browsing data."],
+        edge: ["Tap the three dots (…) at the bottom.", "Tap Settings.", "Tap Privacy, security and services.", "Tap Clear browsing data.", "Choose All time and tick Cookies and site data.", "Tap Clear data."]
+      },
+      apple: {
+        chrome: ["Tap the three dots (…) in the bottom-right corner.", "Tap Delete browsing data.", "Next to Time range, choose All time.", "Tick Cookies, site data.", "Tap Delete browsing data."],
+        firefox: ["Tap the menu (☰) in the bottom-right corner.", "Tap Settings.", "Tap Data Management.", "Turn on Cookies.", "Tap Clear Private Data."],
+        safari: ["Open the Settings app on your iPhone or iPad.", "Tap Apps, then Safari. (On older iPhones, scroll down and tap Safari.)", "Tap Advanced, then Website Data.", "Tap Remove All Website Data.", "Tap Remove Now."],
+        edge: ["Tap the three dots (…) at the bottom.", "Tap Settings.", "Tap Privacy and security.", "Tap Clear browsing data.", "Tick Cookies and other site data.", "Tap Clear now."]
+      }
+    };
+
     const browserIcons = {
       chrome: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#e64b40"/><path d="M16 16h14A14 14 0 0 1 9 28Z" fill="#f8cf50"/><path d="M16 16 9 28A14 14 0 0 1 4 9Z" fill="#42a568"/><circle cx="16" cy="16" r="6" fill="#4c92df" stroke="white" stroke-width="2"/></svg>',
       firefox: '<svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="12" fill="#7955d8"/><path d="m26 3-1 9c9 15-15 25-22 9C0 15 5 7 10 4l-1 9 8-3-3 7c-4 3-4 7 2 8 10 0 13-10 10-22Z" fill="#ff963e"/></svg>',
@@ -206,8 +246,9 @@
       let device = ["computer", "mobile"].includes(selection.device) ? selection.device : null;
       let platform = ["android", "apple"].includes(selection.platform) ? selection.platform : null;
       let browser = Object.hasOwn(browserIcons, selection.browser) ? selection.browser : null;
+      let view = selection.view === "steps" ? "steps" : "video";
       function update() {
-        state.videoGuide = { device, platform, browser };
+        state.videoGuide = { device, platform, browser, view };
         save();
         guide.querySelectorAll("[data-device]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.device === device)));
         guide.querySelectorAll("[data-platform]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.platform === platform)));
@@ -233,8 +274,36 @@
         caption.className = "guide-caption";
         caption.textContent = `${systemName} · ${browserName}`;
         player.appendChild(caption);
+
+        // Choose between the video and the written steps, like the device and browser choices.
+        const views = document.createElement("div");
+        views.className = "guide-options guide-views";
+        [["video", "Watch the video"], ["steps", "Read the steps"]].forEach(([id, label]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "quiz-choice guide-choice";
+          button.textContent = label;
+          button.setAttribute("aria-pressed", String(view === id));
+          button.addEventListener("click", () => { view = id; update(); });
+          views.appendChild(button);
+        });
+        player.appendChild(views);
+
         const url = cookieVideoLinks[system][browser];
-        if (url) {
+        if (view === "steps") {
+          const list = document.createElement("ol");
+          list.className = "guide-steps";
+          cookieSteps[system][browser].forEach(step => {
+            const item = document.createElement("li");
+            item.textContent = step;
+            list.appendChild(item);
+          });
+          player.appendChild(list);
+          const tip = document.createElement("p");
+          tip.className = "guide-hint";
+          tip.textContent = "Deleting cookies may log you out of websites. Menus can look a little different on older versions.";
+          player.appendChild(tip);
+        } else if (url) {
           const frame = document.createElement("iframe");
           frame.referrerPolicy = "strict-origin-when-cross-origin";
           frame.src = url;
@@ -299,6 +368,11 @@
         showCookieQuiz();
         return;
       }
+      if (state.step === COOKIE_SCHOOL_STEP) {
+        panel.hidden = true;
+        showCookieSchool();
+        return;
+      }
       if (state.step === 6 && !["completed", "skipped"].includes(state.cookieGame)) {
         showGameInvitation();
         return;
@@ -313,7 +387,7 @@
         return;
       }
       waitingForChoice = true;
-      step.replies.forEach((reply, index) => {
+      step.replies.filter(reply => !(reply.summary && state.summaryShared)).forEach((reply, index) => {
         const choice = typeof reply === "string" ? { label: reply } : reply;
         const button = document.createElement("button");
         button.type = "button";
@@ -321,10 +395,18 @@
         button.textContent = choice.label;
         button.addEventListener("click", () => {
           if (!waitingForChoice) return;
+          if (choice.later) { window.location.href = "../messages.html"; return; }
           waitingForChoice = false;
           panel.hidden = true;
-          addMessage(choice.label, "sent");
-          if (state.step === 18) recordActivity("cookie-school");
+          addMessage(choice.message || choice.label, "sent");
+          if (choice.summary) {
+            // Mum sends the summary as a document; the chat stays where it was.
+            state.summaryShared = true;
+            state.pendingFeedback = ["Sure! Here are the main points. Tap to open it.", "[[summary]]", "We can still chat about it, if you want."];
+            save();
+            advance();
+            return;
+          }
           state.step += 1;
           state.delivered = 0;
           state.pendingFeedback = choice.feedback || null;
@@ -339,7 +421,7 @@
 
     function showGameInvitation() {
       waitingForChoice = true;
-      ["🕵️ Play Cookie Detective", "Skip the game"].forEach((label, index) => {
+      ["Play Cookie Detective", "Skip, show me the summary"].forEach((label, index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = index === 0 ? "reply-button primary" : "reply-button";
@@ -348,11 +430,11 @@
           if (!waitingForChoice) return;
           waitingForChoice = false;
           panel.hidden = true;
-          addMessage(index === 0 ? "Let's play Cookie Detective!" : "I'll skip the game for now.", "sent");
+          addMessage(index === 0 ? "Let's play Cookie Detective!" : "I'll skip the game. Can I see the summary?", "sent");
           state.cookieGame = index === 0 ? "playing" : "skipped";
           if (index === 1) recordActivity("cookie-detective");
           if (index === 0) { state.cookieCase = 0; state.cookieAnswer = null; }
-          if (index === 1) state.pendingFeedback = "No problem! We can keep chatting.";
+          if (index === 1) state.pendingFeedback = ["Of course! Here are the main points.", "[[summary]]", "If you want to play later, rewind the chat with the ↺ button at the top."];
           save();
           if (index === 0) showCookieQuiz();
           else advance();
@@ -392,9 +474,10 @@
         button.classList.toggle("correct-answer", answered && answer === entry.answer);
       });
       cookieFeedback.hidden = !answered;
-      cookieFeedback.textContent = answered
-        ? `${state.cookieAnswer === entry.answer ? "Exactly!" : "Not quite, and that's okay!"} ${entry.explanation}` : "";
+      cookieFeedback.textContent = !answered ? "" : state.cookieShown ? entry.explanation
+        : `${state.cookieAnswer === entry.answer ? "Exactly!" : "Not quite, and that's okay!"} ${entry.explanation}`;
       nextCookie.hidden = !answered;
+      document.getElementById("skipCookies").hidden = answered;
       nextCookie.textContent = state.cookieCase === cookieCases.length - 1 ? "Continue chatting →" : "Next cookie →";
       save();
       (answered ? nextCookie : cookieQuestion).focus({ preventScroll: true });
@@ -415,6 +498,7 @@
       recordActivity("cookie-detective");
       state.cookieAnswer = null;
       state.pendingFeedback = skipped ? "No problem! We can keep chatting." : null;
+      if (!skipped) addMessage("[[done:Cookie Detective]]", "received");
       save();
       advance();
     }
@@ -423,167 +507,78 @@
       if (state.cookieGame !== "playing" || !state.cookieAnswer) return;
       state.cookieCase += 1;
       state.cookieAnswer = null;
+      state.cookieShown = false;
       if (state.cookieCase === cookieCases.length) finishCookieQuiz(false);
       else showCookieQuiz();
     });
     document.getElementById("skipCookies").addEventListener("click", () => {
-      if (state.cookieGame !== "playing") return;
-      finishCookieQuiz(true);
+      if (state.cookieGame !== "playing" || state.cookieAnswer) return;
+      state.cookieAnswer = cookieCases[state.cookieCase].answer;
+      state.cookieShown = true;
+      showCookieQuiz();
+    });
+
+    const schoolQuiz = document.getElementById("schoolQuiz");
+    const schoolChoices = document.getElementById("schoolChoices");
+    const schoolFeedback = document.getElementById("schoolFeedback");
+    const schoolContinue = document.getElementById("schoolContinue");
+    const schoolSkip = document.getElementById("schoolSkip");
+
+    function showCookieSchool() {
+      waitingForChoice = false;
+      schoolQuiz.hidden = false;
+      // schoolAnswer -1 means the learner skipped and asked for the answer.
+      const answered = Number.isInteger(state.schoolAnswer);
+      schoolChoices.replaceChildren(...cookieSchool.map((choice, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "quiz-choice" + (state.schoolAnswer === index ? " chosen" : "");
+        button.textContent = choice.label;
+        button.disabled = answered;
+        button.addEventListener("click", () => {
+          if (Number.isInteger(state.schoolAnswer)) return;
+          state.schoolAnswer = index;
+          save();
+          showCookieSchool();
+        });
+        return button;
+      }));
+      schoolFeedback.hidden = !answered;
+      schoolFeedback.textContent = !answered ? "" : state.schoolAnswer < 0 ? SCHOOL_ANSWER : cookieSchool[state.schoolAnswer].feedback;
+      schoolContinue.hidden = !answered;
+      schoolSkip.hidden = answered;
+      (answered ? schoolContinue : document.getElementById("schoolQuestion")).focus({ preventScroll: true });
+      scrollToLatest();
+    }
+
+    function finishCookieSchool() {
+      schoolQuiz.hidden = true;
+      recordActivity("cookie-school");
+      addMessage("[[done:Cookie School]]", "received");
+      state.schoolAnswer = null;
+      state.step = COOKIE_SCHOOL_STEP + 1;
+      state.delivered = 0;
+      save();
+      advance();
+    }
+    schoolContinue.addEventListener("click", finishCookieSchool);
+    schoolSkip.addEventListener("click", () => {
+      if (Number.isInteger(state.schoolAnswer)) return;
+      state.schoolAnswer = -1;
+      save();
+      showCookieSchool();
     });
 
     function recordActivity(id) {
       state.playedActivities = [...new Set([...(state.playedActivities || []), id])];
     }
 
-    const menuButton = document.getElementById("chatMenuButton");
-    const menu = document.getElementById("activityMenu");
-    const menuActions = document.getElementById("menuActions");
-    const activityList = document.getElementById("activityList");
-    const activityReplay = document.getElementById("activityReplay");
-
-    function closeMenu() {
-      menu.hidden = true;
-      menuButton.setAttribute("aria-expanded", "false");
-      menuButton.focus({ preventScroll: true });
-    }
-
-    menuButton.addEventListener("click", () => {
-      if (!menu.hidden) { closeMenu(); return; }
-      menu.hidden = false;
-      menuActions.hidden = false;
-      activityList.hidden = true;
-      activityReplay.hidden = true;
-      menuButton.setAttribute("aria-expanded", "true");
-      document.getElementById("replayListButton").focus();
-    });
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape" && !menu.hidden) closeMenu();
-    });
-    document.addEventListener("click", event => {
-      // The click path stays valid even when a replay replaces the clicked card.
-      const path = event.composedPath();
-      if (!menu.hidden && !path.includes(menu) && !path.includes(menuButton)) closeMenu();
-    });
-
-    function showActivityList() {
-      menuActions.hidden = true;
-      activityReplay.hidden = true;
-      activityList.hidden = false;
-      activityList.replaceChildren();
-      const heading = document.createElement("h2");
-      heading.textContent = "Replay Games & Quizzes";
-      activityList.appendChild(heading);
-      const played = state.playedActivities || [];
-      if (!played.length) {
-        const empty = document.createElement("p");
-        empty.textContent = "Games and quizzes you've finished or skipped will appear here.";
-        activityList.appendChild(empty);
-      }
-      played.forEach(id => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "reply-button";
-        button.textContent = id === "cookie-detective" ? "🍪 Cookie Detective" : "🔐 Cookie School";
-        button.disabled = panel.hidden;
-        button.addEventListener("click", () => replayActivity(id));
-        activityList.appendChild(button);
-      });
-      if (played.length && panel.hidden) {
-        const notice = document.createElement("p");
-        notice.textContent = "Finish the current activity or wait for Mum's reply to replay.";
-        activityList.appendChild(notice);
-      }
-      const close = document.createElement("button");
-      close.type = "button";
-      close.className = "reply-button";
-      close.textContent = "Back to chat";
-      close.addEventListener("click", closeMenu);
-      activityList.appendChild(close);
-      close.focus({ preventScroll: true });
-    }
-    document.getElementById("replayListButton").addEventListener("click", showActivityList);
-
-    function replayActivity(id) {
-      activityList.hidden = true;
-      activityReplay.hidden = false;
-      let index = 0;
-      const entries = id === "cookie-detective" ? cookieCases.map(entry => ({
-        question: entry.question,
-        choices: ["🛒 Functional", "👀 Tracking"],
-        correct: entry.answer === "functional" ? 0 : 1,
-        feedback: entry.explanation
-      })) : [{
-        question: "🍪 A new website asks you to accept cookies. What would you choose?",
-        choices: steps[18].replies.map(reply => reply.label),
-        feedback: steps[18].replies.map(reply => reply.feedback)
-      }];
-      function render() {
-        activityReplay.replaceChildren();
-        const card = document.createElement("section");
-        card.className = "lesson";
-        const heading = document.createElement("h2");
-        heading.className = "lesson-heading";
-        heading.textContent = id === "cookie-detective" ? "🍪 Cookie Detective" : "🔐 Cookie School";
-        card.appendChild(heading);
-        const question = document.createElement("h3");
-        question.className = "quiz-question";
-        question.textContent = `${index + 1} of ${entries.length} · ${entries[index].question}`;
-        card.appendChild(question);
-        const choices = document.createElement("div");
-        choices.className = "quiz-choices";
-        const feedback = document.createElement("p");
-        feedback.className = "replay-feedback";
-        feedback.setAttribute("role", "status");
-        const next = document.createElement("button");
-        next.type = "button";
-        next.className = "reply-button primary";
-        next.hidden = true;
-        next.textContent = index === entries.length - 1 ? "Continue chatting →" : "Next cookie →";
-        let answered = false;
-        entries[index].choices.forEach((label, choiceIndex) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "quiz-choice";
-          button.textContent = label;
-          button.addEventListener("click", () => {
-            if (answered) return;
-            answered = true;
-            [...choices.children].forEach((choice, i) => {
-              choice.disabled = true;
-              choice.classList.toggle("correct-answer", i === entries[index].correct);
-            });
-            feedback.textContent = Array.isArray(entries[index].feedback)
-              ? entries[index].feedback[choiceIndex] : entries[index].feedback;
-            next.hidden = false;
-            next.focus({ preventScroll: true });
-          });
-          choices.appendChild(button);
-        });
-        next.addEventListener("click", () => {
-          if (!answered) return;
-          index += 1;
-          if (index === entries.length) closeMenu();
-          else render();
-        });
-        card.appendChild(choices);
-        card.appendChild(feedback);
-        card.appendChild(next);
-        activityReplay.appendChild(card);
-        const back = document.createElement("button");
-        back.type = "button";
-        back.className = "reply-button";
-        back.textContent = "Back to activities";
-        back.addEventListener("click", showActivityList);
-        activityReplay.appendChild(back);
-        choices.querySelector("button").focus({ preventScroll: true });
-      }
-      render();
-    }
+    Tools.mountChatHeader({ summary: "mum", storageKey });
 
     async function advance() {
       panel.hidden = true;
       if (state.pendingFeedback) {
-        await mumReplies(state.pendingFeedback);
+        for (const text of [].concat(state.pendingFeedback)) await mumReplies(text);
         state.pendingFeedback = null;
         save();
       }
@@ -607,7 +602,7 @@
       const saved = JSON.parse(sessionStorage.getItem(storageKey) || "null");
       if (saved && Number.isInteger(saved.step) && saved.step >= 0 && saved.step < steps.length &&
           Number.isInteger(saved.delivered) && saved.delivered >= 0 && saved.delivered <= steps[saved.step].messages.length &&
-          (saved.pendingFeedback === null || typeof saved.pendingFeedback === "string") &&
+          (saved.pendingFeedback === null || typeof saved.pendingFeedback === "string" || Array.isArray(saved.pendingFeedback)) &&
           Array.isArray(saved.messages) && saved.messages.every(message =>
             typeof message.text === "string" && ["sent", "received"].includes(message.sender))) {
         state = saved;

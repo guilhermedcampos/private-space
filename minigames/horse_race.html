@@ -102,49 +102,29 @@ Error generating stack: `+P.message+`
 </script>
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   <script type="application/json" data-clippy-inline-media-manifest="1">{"version":1,"slots":[]}</script>
-  <!-- How to play: shown before the first race, and any time from the "?" button -->
-  <style>
-    #hr-help-btn{position:fixed;right:16px;bottom:16px;z-index:200;height:44px;padding:0 16px;border-radius:999px;border:3px solid #000;background:#fff;color:#111;font:900 15px Nunito,system-ui,sans-serif;box-shadow:0 4px 0 #000;cursor:pointer}
-    #hr-help-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #000}
-    #hr-help{position:fixed;inset:0;z-index:300;background:rgba(17,17,17,.45);display:flex;align-items:center;justify-content:center;padding:20px}
-    #hr-help[hidden]{display:none}
-    #hr-help .box{width:100%;max-width:360px;max-height:100%;overflow-y:auto;background:#fff;border:4px solid #000;border-radius:22px;box-shadow:0 10px 0 #111;padding:22px;font-family:Nunito,system-ui,sans-serif;color:#222}
-    #hr-help h2{margin:0 0 4px;font-size:22px;font-weight:900}
-    #hr-help .sub{margin:0 0 14px;font-size:14px;font-weight:700;opacity:.65}
-    #hr-help ol{margin:0;padding-left:20px;font-size:15px;line-height:1.45;font-weight:600}
-    #hr-help li{margin-bottom:8px}
-    #hr-help b{font-weight:900}
-    #hr-help button.ok{margin-top:14px;width:100%;padding:12px;border:0;border-radius:999px;background:#111;color:#fff;font:900 16px Nunito,system-ui,sans-serif;cursor:pointer}
-  </style>
-  <button id="hr-help-btn" type="button" aria-haspopup="dialog" aria-controls="hr-help">? How to play</button>
-  <div id="hr-help" role="dialog" aria-modal="true" aria-labelledby="hr-help-title" hidden>
-    <div class="box">
-      <h2 id="hr-help-title">How to play</h2>
-      <p class="sub">A race about your online privacy.</p>
-      <ol>
-        <li>The <b>top horse</b> is you. It has the <b>YOU</b> sign. The other 3 horses are trackers.</li>
-        <li>There are <b>5 questions</b>. Each one has 2 answers. Tap the answer you think is right.</li>
-        <li><b>Right answer:</b> your horse moves forward a lot. The others move a little.</li>
-        <li><b>Wrong answer:</b> your horse stays still. The others move forward.</li>
-        <li>Reach the flag 🚩 first to win. After the 5th question, the horse that is furthest ahead wins.</li>
-        <li>There is no timer. Take your time. You can replay as many times as you like.</li>
-      </ol>
-      <button class="ok" type="button">Got it</button>
-    </div>
-  </div>
   <script>
-  (function(){
-    var dlg=document.getElementById("hr-help"), btn=document.getElementById("hr-help-btn"), ok=dlg.querySelector(".ok");
-    function open(){ dlg.hidden=false; ok.focus(); }
-    function close(){ dlg.hidden=true; btn.focus(); }
-    btn.addEventListener("click", open);
-    ok.addEventListener("click", close);
-    dlg.addEventListener("click", function(e){ if(e.target===dlg) close(); });
-    document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !dlg.hidden) close(); });
-    // Show the rules automatically the first time the game is opened in this visit.
-    var seen=false; try{ seen=sessionStorage.getItem("horse-race-help-seen")==="1"; sessionStorage.setItem("horse-race-help-seen","1"); }catch(e){}
-    if(!seen) open();
-  })();
+    // Tell Sam's chat that a race was finished, so Sam can react to it.
+    // The game is a compiled bundle, so we watch for its result screen.
+    new MutationObserver(() => {
+      const title = [...document.querySelectorAll("h2")].map(h => h.textContent).find(t => t === "You Win!" || t === "You Lose");
+      if (!title) return;
+      try { sessionStorage.setItem("horse-race-result", title === "You Win!" ? "won" : "lost"); } catch (e) { /* storage unavailable */ }
+    }).observe(document.body, { childList: true, subtree: true });
+  </script>
+  <script src="game-help.js"></script>
+  <script>
+    GameHelp.mount({
+      id: "horse-race",
+      subtitle: "A race about your online privacy.",
+      rules: [
+        "The <b>top horse</b> is you. It has the <b>YOU</b> sign. The other 3 horses are trackers.",
+        "There are <b>5 questions</b>. Each one has 2 answers. Tap the answer you think is right.",
+        "<b>Right answer:</b> your horse moves forward a lot. The others move a little.",
+        "<b>Wrong answer:</b> your horse stays still. The others move forward.",
+        "Reach the flag 🚩 first to win. After the 5th question, the horse that is furthest ahead wins.",
+        "There is no timer. Take your time. You can replay as many times as you like."
+      ]
+    });
   </script>
 </body>
 </html>
