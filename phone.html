@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chat with Sam</title>
+  <title>Home</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script>
     // On small screens, skip the frame and open the page directly.
@@ -159,6 +159,8 @@
         side.hidden = true;
         side.innerHTML = "";
         fit();
+      } else if (e.data.type === "phone:title") {
+        document.title = e.data.title; // the browser tab shows the screen that is open in the phone
       } else if (e.data.type === "phone:side") {
         side.innerHTML = e.data.html;
         side.hidden = !e.data.html;

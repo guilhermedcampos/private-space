@@ -49,6 +49,9 @@
         </div>
         <button class="reply-button game-skip" id="skipGameButton" type="button">Skip, show me the summary</button>
       </div>
+
+      <!-- Alex's message after the crossword appears below the game, like Sam's after the horse race -->
+      <div id="afterGameMessages"></div>
     </section>
 
     <section class="reply-panel" id="replyPanel" aria-label="Choose your reply" hidden>
@@ -76,18 +79,21 @@
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const scrollToLatest = () => { chatContent.scrollTop = chatContent.scrollHeight; };
 
-    function renderMessage({ text, sender }) {
+    const afterGameMessages = document.getElementById("afterGameMessages");
+    function renderMessage({ text, sender, afterGame }) {
       const bubble = document.createElement("div");
       bubble.className = `bubble ${sender}`;
       if (text === "[[summary]]") bubble.innerHTML = Tools.summaryCardHTML("alex");
       else bubble.textContent = text;
-      messages.appendChild(bubble);
+      (afterGame ? afterGameMessages : messages).appendChild(bubble);
       scrollToLatest();
     }
+    let afterGame = false; // true while Alex reacts to a finished crossword
     function addMessage(text, sender) {
-      state.messages.push({ text, sender });
+      const message = afterGame ? { text, sender, afterGame } : { text, sender };
+      state.messages.push(message);
       save();
-      renderMessage({ text, sender });
+      renderMessage(message);
     }
 
     // Same timing as Sam and Mum.
@@ -129,6 +135,18 @@
       scrollToLatest();
     }
 
+    // Back from the crossword: Alex sends one last message about it, then the chat ends.
+    async function reactToGame() {
+      let result = null;
+      try { result = sessionStorage.getItem("crossword-result"); sessionStorage.removeItem("crossword-result"); } catch { /* storage unavailable */ }
+      if (!result || state.phase !== "game") return;
+      panel.hidden = true;
+      afterGame = true;
+      afterGameMessages.after(typing); // typing dots show below the game too
+      await alexReplies(["[Placeholder]"]);
+      showEnd();
+    }
+
     function showGame() {
       embed.style.display = "block";
       document.getElementById("skipGameButton").hidden = state.phase === "skipped";
@@ -155,9 +173,12 @@
         showGame();
       } else {
         showGame();
+        reactToGame();
       }
       requestAnimationFrame(scrollToLatest);
     }
+    // Coming back with the browser's Back button can skip start().
+    window.addEventListener("pageshow", (e) => { if (e.persisted) reactToGame(); });
 
     document.getElementById("skipGameButton").addEventListener("click", async () => {
       if (state.phase !== "game") return;

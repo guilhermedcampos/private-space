@@ -127,23 +127,23 @@
     // Each step contains Mum's messages followed by the user's available replies.
     const steps = [
       { messages: ["Hey! Quick question… do you like cookies? 🍪"], replies: ["Uhm… yeah, who doesn't?", "Do you mean the chocolate chip kind?", { label: "Just send me the summary", message: "Can you just send me the summary?", summary: true }, { label: "Not now. Remind me later.", later: true }] },
-      { messages: ["Haha, same! But I mean internet cookies, not the chocolate chip kind."], replies: ["Wait… websites have cookies?", "I've heard of those. What are they?"] },
+      { messages: ["Haha, same! But I mean **internet cookies**, not the chocolate chip kind."], replies: ["Wait… websites have cookies?", "I've heard of those. What are they?"] },
       { messages: ["Yep! Ever seen a pop-up saying ‘Accept all cookies’?"], replies: ["Ohhh, those annoying pop-ups!", "Yes, I see those all the time."] },
       { messages: ["Exactly! But do you know what you're accepting?"], replies: ["Not really. I usually just click accept.", "I sometimes check, but it's confusing."] },
-      { messages: ["You're not the only one! Cookies are tiny pieces of data that websites save in your browser."], replies: ["Okay… but why?", "What do websites use them for?"] },
+      { messages: ["You're not the only one! Cookies are **tiny pieces of data** that websites save in your browser."], replies: ["Okay… but why?", "What do websites use them for?"] },
       { messages: ["Imagine you add sneakers to your cart, close the website by accident, and come back later. Nice if they're still there, right?"], replies: ["Obviously!", "Yes, I don't want to start again."] },
-      { messages: ["Cookies help with that. They remember your cart, your language, and that you're logged in."], replies: ["Okay, so cookies are actually useful?", "That sounds pretty handy."] },
+      { messages: ["Cookies help with that. They **remember** your cart, your language, and that you're logged in."], replies: ["Okay, so cookies are actually useful?", "That sounds pretty handy."] },
       { messages: ["Absolutely! But… there's a little plot twist."], replies: ["Uh-oh. What?", "What's the catch?"] },
       { messages: ["Ever searched for something online and suddenly started seeing ads for it everywhere?"], replies: ["YES! That's actually creepy.", "Sometimes. Is that connected?"] },
-      { messages: ["Some cookies, called tracking cookies, help advertisers recognise your browser on different websites."], replies: ["So websites are following me?", "Does that mean they track what I browse?"] },
+      { messages: ["Some cookies, called **tracking cookies**, help advertisers recognise your browser on different websites."], replies: ["So websites are following me?", "Does that mean they track what I browse?"] },
       { messages: ["Not like someone following you down the street! But some cookies can track what you browse and guess your interests."], replies: ["Hmm… I'm not sure I like that.", "Can I choose whether they do that?"] },
-      { messages: ["Yes, you can! Websites should ask you first. Saying yes or no is called giving consent."], replies: ["So I can say no?", "How do I say no?"] },
-      { messages: ["Yes. You choose if websites can use optional cookies, like the ones that track you."], replies: ["So I don't actually have to click ‘Accept all’?", "Can I say no to optional cookies?"] },
+      { messages: ["Yes, you can! Websites should ask you first. Saying yes or no is called giving **consent**."], replies: ["So I can say no?", "How do I say no?"] },
+      { messages: ["Yes. You choose if websites can use **optional cookies**, like the ones that track you."], replies: ["So I don't actually have to click ‘Accept all’?", "Can I say no to optional cookies?"] },
       { messages: ["Nope! Most websites let you accept all, reject optional cookies, or customise."], replies: ["Wait, what's the difference?", "Can you explain those options?"] },
-      { messages: ["Good question! Let's make it simple.", "Accept all: the website can use all its cookies, including optional ones.", "Reject optional: only the cookies the website needs to work.", "Customise: you pick which optional cookies are okay."], replies: ["But what if I reject optional cookies? Will the website still work?", "Are necessary cookies different?"] },
+      { messages: ["Good question! Let's make it simple.", "**Accept all:** the website can use all its cookies, including optional ones.", "**Reject optional:** only the cookies the website needs to work.", "**Customise:** you pick which optional cookies are okay."], replies: ["But what if I reject optional cookies? Will the website still work?", "Are necessary cookies different?"] },
       { messages: ["Usually, yes! Necessary cookies keep the website working. Optional ones aren't needed for that."], replies: ["Interesting. And do cookies stay forever?", "How long do cookies stay in my browser?"] },
       { messages: ["Nope! Some go away when you close the browser. Others stay until they expire or you delete them."], replies: ["I can delete cookies myself?", "Where can I manage them?"] },
-      { messages: ["Yes! You can delete cookies in your browser settings. This may log you out of websites. The video guide below shows how. You can also watch it later."], replies: ["Okay, I think I'm starting to get it.", "Got it — deleting them can reset things."] },
+      { messages: ["Yes! You can **delete cookies** in your browser settings. This may log you out of websites. The video guide below shows how. You can also watch it later."], replies: ["Okay, I think I'm starting to get it.", "Got it — deleting them can reset things."] },
       { messages: ["Great! Let's see if you passed Cookie School."], replies: [] },
       { messages: ["Before you go, remember three things:", "1. Cookies help websites remember things.", "2. Some cookies can track what you browse.", "3. You can say no to optional tracking cookies.", "Now, when a cookie banner appears, you'll know what it's asking. Go enjoy some real cookies! 🍪"], replies: [] }
     ];
@@ -174,6 +174,13 @@
 
     function scrollToLatest() { chatContent.scrollTop = chatContent.scrollHeight; }
 
+    // Key words are written **like this** and shown in bold, as in Sam's chat.
+    function formatText(text) {
+      const safe = document.createElement("div");
+      safe.textContent = text;
+      return safe.innerHTML.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    }
+
     function renderMessage(text, sender) {
       const bubble = document.createElement("div");
       bubble.className = `bubble ${sender}`;
@@ -181,9 +188,9 @@
       else if (text.startsWith("[[done:")) {
         bubble.className = "activity-done";
         bubble.textContent = `✓ ${text.slice(7, -2)} done`;
-      } else bubble.textContent = text;
+      } else bubble.innerHTML = formatText(text);
       messages.appendChild(bubble);
-      if (sender === "received" && text.startsWith("Yes! You can delete cookies in your browser settings.")) renderVideoGuide();
+      if (sender === "received" && text.startsWith("Yes! You can **delete cookies** in your browser settings.")) renderVideoGuide();
       scrollToLatest();
     }
 

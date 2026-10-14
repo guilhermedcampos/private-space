@@ -38,9 +38,7 @@
 
       <div class="contact-details">
         <div class="contact-name">Sam</div>
-        <div class="contact-status" id="samStatus">
-          online 5 minutes ago
-        </div>
+        <div class="contact-status online" id="samStatus">online</div>
       </div>
 
       <div class="header-actions">
@@ -133,6 +131,8 @@
           </div>
 
         </section>
+
+        <div class="activity-done" id="quizDone" hidden>✓ Detective Challenge done</div>
 
         <div class="date-divider" id="finalDateDivider" hidden></div>
         <div id="postQuizMessages"></div>
@@ -416,7 +416,7 @@
       setConversationPhase("challenge-options");
       await samReplies([
         "Yep! They're <strong>predictions</strong>, not necessarily facts. But it got me thinking about how much our activity can reveal.",
-        "Want to try a little <strong>detective challenge</strong>? 🕵️"
+        "Want to try a little <strong>detective challenge</strong>?"
       ]);
 
       showChallengeOptions();
@@ -428,7 +428,7 @@
       await samReplies([
         "For example, if you often watch <strong>hiking videos</strong>, an app may predict that you're interested in outdoor activities.",
         "These are predictions based on <strong>patterns</strong>, not necessarily facts.",
-        "Want to try a little detective challenge? 🕵️"
+        "Want to try a little <strong>detective challenge</strong>?"
       ]);
 
       showChallengeOptions();
@@ -462,7 +462,7 @@
           action: openQuiz
         },
         {
-          label: "Back to all messages",
+          label: "Not now. Remind me later.",
           action: () => {
             window.location.href = "../messages.html";
           }
@@ -557,10 +557,17 @@
     const quizExtraActions = document.getElementById("quizExtraActions");
     const showAnswerButton = document.getElementById("showAnswerButton");
 
+    // A finished quiz folds into a "✓ … done" note, like the quizzes in Mum's chat.
+    function showQuizDone() {
+      lesson.hidden = true;
+      document.getElementById("quizDone").hidden = false;
+    }
+
     async function sendFinalInsight() {
       if (finalFollowUpSent) return;
       finalFollowUpSent = true;
       if (quizExtraActions) quizExtraActions.hidden = true;
+      showQuizDone();
 
       await wait(1000);
       if (finalDateDivider) {
@@ -731,7 +738,7 @@
         dateDivider.hidden = false;
         lesson.hidden = false;
         if (state.quizAnswer) showQuizResult(state.quizAnswer);
-        if (finalFollowUpSent && quizExtraActions) quizExtraActions.hidden = true;
+        if (finalFollowUpSent) showQuizDone();
         if (finalDateDivider) {
           finalDateDivider.textContent = "Today";
           finalDateDivider.hidden = false;
@@ -761,11 +768,14 @@
       setConversationPhase("example-options");
       showOptions([
         { label: "Okay, let's try the challenge!", action: openQuiz },
-        { label: "Back to all messages", action: () => { window.location.href = "../messages.html"; } }
+        { label: "Not now. Remind me later.", action: () => { window.location.href = "../messages.html"; } }
       ]);
     }
 
     Tools.mountChatHeader({ summary: "sam", storageKey: conversationStorageKey });
+
+    // Sam's message has been read: the home-screen notification goes away.
+    try { sessionStorage.setItem("sam-notification-read", "1"); } catch { /* storage unavailable */ }
 
     restoreConversation();
     // Coming back with the browser's Back button can skip the restore above.

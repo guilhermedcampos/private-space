@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="phone.js"></script>
-  <title>Home | Private Space</title>
+  <title>Home</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -25,6 +25,7 @@
       border: 1px solid #e3e8f5; border-radius: 20px; background: rgba(255,255,255,.92);
       box-shadow: 0 8px 22px #3d5c9720; text-decoration: none; color: inherit;
     }
+    .notification[hidden] { display: none; }
     .notification img { width: 38px; height: 38px; border-radius: 10px; image-rendering: pixelated; flex-shrink: 0; }
     .notification-text { min-width: 0; font-size: 14px; line-height: 1.35; }
     .notification-text strong { display: flex; justify-content: space-between; font-size: 13px; }
@@ -54,7 +55,7 @@
   </style>
 </head>
 <body>
-  <a class="notification" href="index.html" aria-label="Open Private Space: new message from Sam">
+  <a class="notification" href="chats/sam.html" aria-label="Open the message from Sam">
     <img src="img/intro/app-icon.png" alt="">
     <span class="notification-text">
       <strong>Private Space <span>now</span></strong>
@@ -72,6 +73,16 @@
   <p class="toast" id="toast" role="status" hidden></p>
 
   <script>
+    // Sam's notification disappears once Sam's chat has been opened (from here or from Messages).
+    function hideReadNotification() {
+      let read = false;
+      try { read = sessionStorage.getItem("sam-notification-read") === "1"; } catch (e) { /* storage unavailable */ }
+      document.querySelector(".notification").hidden = read;
+    }
+    hideReadNotification();
+    // The Back button can show a saved copy of this page without rerunning scripts.
+    window.addEventListener("pageshow", hideReadNotification);
+
     // Other courses that could exist later (R10). They can't be opened yet.
     const comingSoon = [0.65, 0.4, 0.8, 0.25, 0.55].map((progress) => ({ name: "[Placeholder]", progress }));
     const apps = document.querySelector(".apps");

@@ -46,5 +46,7 @@
     if (e.data && e.data.type === "phone:side-click" && sideClick) sideClick(e.data.action);
   });
 
-  post({ type: "phone:page", path: rel, title: document.title });
+  post({ type: "phone:page", path: rel });
+  // The page's <title> comes after this script, so send it once the page has loaded.
+  document.addEventListener("DOMContentLoaded", () => post({ type: "phone:title", title: document.title }));
 })();

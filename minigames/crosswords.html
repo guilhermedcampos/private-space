@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="../phone.js"></script>
-<title>Privacy Crossword - Fixed Direction</title>
+<title>Crossword | Private Space</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
@@ -345,7 +345,11 @@ function checkWordsAt(r,c){
 }
 
 // End pop-up when you find every word, like the horse race's result screen.
+function rememberResult(result){
+  try { sessionStorage.setItem("crossword-result", result); } catch(e) { /* storage unavailable */ }
+}
 function showEndPopup(){
+  rememberResult("solved");
   const pop = document.getElementById("endPopup");
   pop.hidden = false;
   pop.querySelector(".end-replay").focus();
@@ -442,6 +446,7 @@ function revealAll(){
   for(let k in solution){ let el=cellEls[k]; if(el) el.input.value=solution[k]; }
   for(let p of PLACEMENTS) lockWord(p);
   // Keep the answers visible: swap the buttons for Replay / Chat instead of covering the grid.
+  rememberResult("shown");
   document.querySelector(".btns").hidden = true;
   document.getElementById("answersShown").hidden = false;
 }
