@@ -132,8 +132,6 @@
 
         </section>
 
-        <div class="activity-done" id="quizDone" hidden>✓ Detective Challenge done</div>
-
         <div class="date-divider" id="finalDateDivider" hidden></div>
         <div id="postQuizMessages"></div>
 
@@ -557,10 +555,9 @@
     const quizExtraActions = document.getElementById("quizExtraActions");
     const showAnswerButton = document.getElementById("showAnswerButton");
 
-    // A finished quiz folds into a "✓ … done" note, like the quizzes in Mum's chat.
+    // A finished quiz stays in the chat, answered, so the right answer can be looked at again.
     function showQuizDone() {
-      lesson.hidden = true;
-      document.getElementById("quizDone").hidden = false;
+      if (quizExtraActions) quizExtraActions.hidden = true;
     }
 
     async function sendFinalInsight() {
@@ -674,7 +671,10 @@
       });
       showAnswerButton.hidden = true;
       continueQuizButton.hidden = finalFollowUpSent;
-      if (!finalFollowUpSent) continueQuizButton.focus({ preventScroll: true });
+      if (!finalFollowUpSent) {
+        continueQuizButton.focus({ preventScroll: true });
+        scrollToLatest(); // bring the answer and "Continue chatting" into view
+      }
       saveConversationState();
     }
     showAnswerButton.addEventListener("click", () => showQuizResult("shown"));

@@ -181,7 +181,47 @@
       return safe.innerHTML.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     }
 
+    // An answered quiz question stays in the chat as its own card, like Sam's quiz,
+    // so the right answer can be looked at again. Saved as [[quiz:{...}]] in the messages.
+    function answeredQuizCard(data) {
+      const card = document.createElement("section");
+      card.className = "lesson";
+      const make = (tag, className, text) => Object.assign(document.createElement(tag), { className, textContent: text });
+      const box = make("div", "quiz-card");
+      const choices = make("div", "quiz-choices");
+      let feedback;
+      if (data.kind === "detective") {
+        const entry = cookieCases[data.i];
+        card.append(make("h2", "lesson-heading", "Cookie Detective"));
+        box.append(make("p", "quiz-label", `Cookie ${data.i + 1} of ${cookieCases.length}`), make("h3", "quiz-question", entry.question));
+        ["functional", "tracking"].forEach((answer) => {
+          const button = make("button", "quiz-choice" + (answer === entry.answer ? " correct-answer" : ""), answer === "functional" ? "Functional" : "Tracking");
+          button.disabled = true;
+          choices.append(button);
+        });
+        feedback = data.shown ? entry.explanation
+          : `${data.answer === entry.answer ? "Exactly!" : "Not quite, and that's okay!"} ${entry.explanation}`;
+      } else {
+        card.append(make("h2", "lesson-heading", "Cookie School"), make("p", "lesson-intro", "Imagine you visit a new website and this appears:"));
+        box.append(make("p", "cookie-banner", "🍪 We use cookies to improve your experience. Would you like to accept them?"), make("h3", "quiz-question", "What would you choose?"));
+        cookieSchool.forEach((choice, index) => {
+          const button = make("button", "quiz-choice" + (index === data.answer ? " chosen" : ""), choice.label);
+          button.disabled = true;
+          choices.append(button);
+        });
+        feedback = data.answer < 0 ? SCHOOL_ANSWER : cookieSchool[data.answer].feedback;
+      }
+      box.append(choices, make("div", "quiz-feedback", feedback));
+      card.append(box);
+      return card;
+    }
+
     function renderMessage(text, sender) {
+      if (text.startsWith("[[quiz:")) {
+        messages.appendChild(answeredQuizCard(JSON.parse(text.slice(7, -2))));
+        scrollToLatest();
+        return;
+      }
       const bubble = document.createElement("div");
       bubble.className = `bubble ${sender}`;
       if (text === "[[summary]]") bubble.innerHTML = Tools.summaryCardHTML("mum");
@@ -505,13 +545,13 @@
       recordActivity("cookie-detective");
       state.cookieAnswer = null;
       state.pendingFeedback = skipped ? "No problem! We can keep chatting." : null;
-      if (!skipped) addMessage("[[done:Cookie Detective]]", "received");
       save();
       advance();
     }
 
     nextCookie.addEventListener("click", () => {
       if (state.cookieGame !== "playing" || !state.cookieAnswer) return;
+      addMessage(`[[quiz:${JSON.stringify({ kind: "detective", i: state.cookieCase, answer: state.cookieAnswer, shown: !!state.cookieShown })}]]`, "received");
       state.cookieCase += 1;
       state.cookieAnswer = null;
       state.cookieShown = false;
@@ -561,7 +601,7 @@
     function finishCookieSchool() {
       schoolQuiz.hidden = true;
       recordActivity("cookie-school");
-      addMessage("[[done:Cookie School]]", "received");
+      addMessage(`[[quiz:${JSON.stringify({ kind: "school", answer: state.schoolAnswer })}]]`, "received");
       state.schoolAnswer = null;
       state.step = COOKIE_SCHOOL_STEP + 1;
       state.delivered = 0;

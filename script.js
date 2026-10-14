@@ -30,6 +30,7 @@ const CHAT_PREVIEWS = [
 
 function previewText(text) {
   if (text === "[[summary]]" || text.includes("data-open-summary")) return "Summary";
+  if (text.startsWith("[[quiz:")) return "Quiz";
   if (text.startsWith("[[done:")) return `${text.slice(7, -2)} done`;
   return text.replace(/<[^>]*>/g, "").replace(/\*\*/g, "");
 }
