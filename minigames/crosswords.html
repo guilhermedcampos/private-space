@@ -192,14 +192,15 @@ function createGrid(){
       inp.addEventListener("keydown", onKeyDown);
       inp.addEventListener("focus", ()=>selectCell(r,c,false));
       div.appendChild(inp);
+      // Was this square already selected before this click? (Focus happens before "click".)
+      let wasSelected = false;
+      div.addEventListener("mousedown", ()=>{ wasSelected = !!(selected && selected.r===r && selected.c===c); });
       div.addEventListener("click", ()=>{
-        // clicking same cell toggles direction
-        if(selected && selected.r===r && selected.c===c){
-          selectCell(r,c,true);
-        } else {
-          inp.focus();
-          selectCell(r,c,false);
-        }
+        // clicking the same square again toggles direction
+        if(wasSelected){ selectCell(r,c,true); return; }
+        currentDir = clickDirection(r,c);
+        inp.focus();
+        selectCell(r,c,false);
       });
       cellEls[k] = {cellDiv:div, input:inp};
       gridEl.appendChild(div);
@@ -212,6 +213,17 @@ function getPlacementsAt(r,c){
     if(p.dir==="across") return r===p.row && c>=p.col && c<p.col+p.word.length;
     else return c===p.col && r>=p.row && r<p.row+p.word.length;
   });
+}
+
+// A deliberate click on a numbered square starts that square's word, in its direction
+// (e.g. 2 starts INCOGNITO across, 3 starts CONSENT down). Elsewhere, if only one unfinished
+// word passes through the square, use its direction; otherwise keep the current one.
+function clickDirection(r,c){
+  const open = getPlacementsAt(r,c).filter(p=>!lockedWords.has(p.word));
+  const starts = open.filter(p=>p.row===r && p.col===c);
+  if(starts.length===1) return starts[0].dir;
+  if(open.length===1) return open[0].dir;
+  return currentDir;
 }
 
 function selectCell(r,c, toggle){
