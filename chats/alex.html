@@ -10,7 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="app-body">
+<!-- Placeholder chat: shows that more chats (topics) can be added. Same structure as Sam's. -->
+<body class="app-body" data-contact="Alex">
   <main class="chat-app">
     <header class="chat-header">
       <a class="back-button" href="../messages.html" aria-label="Back to messages">‹</a>
@@ -19,20 +20,158 @@
       </div>
       <div class="contact-details">
         <div class="contact-name">Alex</div>
+        <div class="contact-status online" id="alexStatus">online</div>
       </div>
-      <div class="more-button" aria-hidden="true">⋯</div>
+      <div class="header-actions">
+        <button class="pill-button small" id="summaryButton" type="button" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg>
+          Summary
+        </button>
+        <button class="round-button small" id="rewindButton" type="button" aria-label="Start this chat again" title="Start this chat again">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+      </div>
     </header>
-    <section class="chat-content" aria-label="Conversation with Alex">
+
+    <section class="chat-content" id="chatContent" aria-label="Conversation with Alex">
       <div class="story-label">Everything is fictional.</div>
-      <!-- CROSSWORD EMBED - PLAY above image -->
-      <div id="crosswordEmbed" style="margin:24px 16px 36px; text-align:center;">
+      <div id="conversationMessages"></div>
+
+      <div id="typingIndicator" class="bubble received" role="status" aria-label="Alex is typing" hidden>
+        <span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      </div>
+
+      <!-- CROSSWORD EMBED - same invite as Sam's horse race: PLAY above the image, then skip -->
+      <div id="crosswordEmbed" style="display:none; margin:24px 16px 36px; text-align:center;">
+        <a href="../minigames/crosswords.html" style="display:inline-flex; align-items:center; justify-content:center; width:100%; max-width:320px; background:#1a1a1a; color:#fff; font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; padding:14px 32px; border-radius:14px; text-decoration:none; box-shadow:0 5px 0 #000, 0 8px 20px rgba(0,0,0,0.22); margin-bottom:14px;">▶ PLAY</a>
         <div style="border-radius:18px; overflow:hidden; background:#78C96E; box-shadow:0 8px 24px rgba(0,0,0,0.12); border:2px solid #e8e8e8;">
           <img src="../img/crossword.png" alt="Crossword" style="width:100%; display:block; image-rendering:pixelated; aspect-ratio:16/9; object-fit:cover;">
         </div>
-        <a href="../minigames/crosswords.html" style="display:inline-flex; align-items:center; justify-content:center; width:100%; max-width:320px; background:#1a1a1a; color:#fff; font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; padding:14px 32px; border-radius:14px; text-decoration:none; box-shadow:0 5px 0 #000, 0 8px 20px rgba(0,0,0,0.22); margin-bottom:14px;">▶ PLAY</a>
+        <button class="reply-button game-skip" id="skipGameButton" type="button">Skip, show me the summary</button>
       </div>
     </section>
+
+    <section class="reply-panel" id="replyPanel" aria-label="Choose your reply" hidden>
+      <div class="reply-options" id="replyOptions"></div>
+    </section>
+
     <div class="home-indicator" aria-hidden="true"><span></span></div>
   </main>
+
+  <script src="../tools.js"></script>
+  <script>
+    const storageKey = "private-space-alex-conversation";
+    const chatContent = document.getElementById("chatContent");
+    const messages = document.getElementById("conversationMessages");
+    const typing = document.getElementById("typingIndicator");
+    const status = document.getElementById("alexStatus");
+    const panel = document.getElementById("replyPanel");
+    const options = document.getElementById("replyOptions");
+    const embed = document.getElementById("crosswordEmbed");
+
+    // phase: "start" → "replied" → "game" (crossword sent) → "skipped"
+    let state = { phase: "start", messages: [] };
+    try { state = JSON.parse(sessionStorage.getItem(storageKey)) || state; } catch { /* start fresh */ }
+    const save = () => { try { sessionStorage.setItem(storageKey, JSON.stringify(state)); } catch { /* storage unavailable */ } };
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const scrollToLatest = () => { chatContent.scrollTop = chatContent.scrollHeight; };
+
+    function renderMessage({ text, sender }) {
+      const bubble = document.createElement("div");
+      bubble.className = `bubble ${sender}`;
+      if (text === "[[summary]]") bubble.innerHTML = Tools.summaryCardHTML("alex");
+      else bubble.textContent = text;
+      messages.appendChild(bubble);
+      scrollToLatest();
+    }
+    function addMessage(text, sender) {
+      state.messages.push({ text, sender });
+      save();
+      renderMessage({ text, sender });
+    }
+
+    // Same timing as Sam and Mum.
+    async function alexReplies(texts) {
+      for (const text of texts) {
+        await wait(600);
+        status.textContent = "Alex is typing";
+        status.className = "contact-status typing";
+        typing.hidden = false;
+        scrollToLatest();
+        await wait(1200);
+        typing.hidden = true;
+        status.textContent = "online";
+        status.className = "contact-status online";
+        addMessage(text, "received");
+      }
+    }
+
+    function showReplies(labels, onChoose) {
+      options.replaceChildren(...labels.map((label, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = index === 0 ? "reply-button primary" : "reply-button";
+        button.textContent = label;
+        button.addEventListener("click", () => { panel.hidden = true; onChoose(label); });
+        return button;
+      }));
+      panel.hidden = false;
+      options.querySelector("button").focus({ preventScroll: true });
+    }
+
+    function showEnd() {
+      const back = document.createElement("a");
+      back.className = "back-to-messages";
+      back.href = "../messages.html";
+      back.textContent = "← Back to all messages";
+      options.replaceChildren(back);
+      panel.hidden = false;
+      scrollToLatest();
+    }
+
+    function showGame() {
+      embed.style.display = "block";
+      document.getElementById("skipGameButton").hidden = state.phase === "skipped";
+      if (state.phase === "skipped") embed.style.display = "none";
+      showEnd();
+    }
+
+    async function start() {
+      state.messages.forEach(renderMessage);
+      if (state.phase === "start") {
+        showReplies(["[Placeholder]", "[Placeholder]"], async (label) => {
+          addMessage(label, "sent");
+          state.phase = "replied";
+          save();
+          await alexReplies(["[Placeholder]"]);
+          state.phase = "game";
+          save();
+          showGame();
+        });
+      } else if (state.phase === "replied") {
+        await alexReplies(["[Placeholder]"]);
+        state.phase = "game";
+        save();
+        showGame();
+      } else {
+        showGame();
+      }
+      requestAnimationFrame(scrollToLatest);
+    }
+
+    document.getElementById("skipGameButton").addEventListener("click", async () => {
+      if (state.phase !== "game") return;
+      state.phase = "skipped";
+      save();
+      embed.style.display = "none";
+      panel.hidden = true;
+      addMessage("I'll skip the game. Can I see the summary?", "sent");
+      await alexReplies(["Of course! Here are the main points.", "[[summary]]", "If you want to play later, rewind the chat with the ↺ button at the top."]);
+      showEnd();
+    });
+
+    Tools.mountChatHeader({ summary: "alex", storageKey });
+    start();
+  </script>
 </body>
 </html>

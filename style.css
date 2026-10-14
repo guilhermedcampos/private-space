@@ -767,3 +767,5 @@ input:focus-visible {
 .game-skip { margin-top: 10px; }
 .quiz-choice.chosen { border: 2px solid #8159e6; background: #eee9ff; color: #714ed0; }
 .cookie-banner { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px dashed #94a3b8; color: #334155; font-size: 14px; line-height: 1.5; font-weight: 700; }
+/* Highlighted replies without an arrow are centred, like the other replies */
+.reply-button.primary:not(:has(.arrow)) { justify-content: center; text-align: center; }

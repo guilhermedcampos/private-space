@@ -18,6 +18,11 @@
         "Incognito stops your device saving your history. It doesn't make you invisible.",
       ],
     },
+    alex: {
+      contact: "Alex",
+      title: "[Placeholder]",
+      points: ["[Placeholder]", "[Placeholder]", "[Placeholder]"],
+    },
     mum: {
       contact: "Mum",
       title: "Cookies and consent",

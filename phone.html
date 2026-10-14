@@ -122,12 +122,22 @@
 
     frame.src = location.hash.slice(1) || "index.html";
 
-    // Scale the phone down so it always fits the window (e.g. on a projector).
+    // The phone comes first: it fills the window height (also on a projector).
+    // A side panel (e.g. crossword clues) gets the space left over and shrinks to fit it.
+    const SIDE_W = 340;     // side panel width at full size (matches .side in CSS)
+    const SIDE_MIN = 200;   // narrowest the side panel may get before the phone gives way
     function fit() {
-      const sideW = side.hidden ? 0 : side.offsetWidth + 40;
-      const s = Math.min(1, (innerHeight - 32) / stage.offsetHeight, (innerWidth - 32 - sideW) / stage.offsetWidth);
+      const w = stage.offsetWidth, h = stage.offsetHeight;
+      const reserve = side.hidden ? 0 : SIDE_MIN + 40;
+      const s = Math.min(1.25, (innerHeight - 32) / h, (innerWidth - 32 - reserve) / w);
       stage.style.transform = `scale(${s})`;
-      stage.style.margin = `${(stage.offsetHeight * (s - 1)) / 2}px ${(stage.offsetWidth * (s - 1)) / 2}px`;
+      stage.style.margin = `${(h * (s - 1)) / 2}px ${(w * (s - 1)) / 2}px`;
+      if (!side.hidden) {
+        const room = innerWidth - 32 - w * s - 40;
+        const zoom = Math.min(1, room / SIDE_W);
+        side.style.zoom = zoom;
+        side.style.maxHeight = `${(h * s) / zoom}px`; // never taller than the phone
+      }
     }
     addEventListener("resize", fit);
     fit();
