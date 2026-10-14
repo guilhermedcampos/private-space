@@ -34,6 +34,21 @@
   .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
   .btn.secondary{background:#fff}
 
+  /* End pop-up: same look as the horse race's result screen */
+  .end-popup{position:fixed;inset:0;z-index:500;background:rgba(255,255,255,.85);backdrop-filter:blur(6px);display:grid;place-items:center;padding:24px}
+  .end-popup[hidden]{display:none}
+  .end-box{width:100%;max-width:360px;background:#fff;border:4px solid #000;border-radius:26px;padding:24px;box-shadow:0 12px 0 #111;text-align:center}
+  .end-icon{width:64px;height:64px;margin:0 auto 12px;border:3px solid #000;border-radius:18px;display:grid;place-items:center;font-size:32px;background:#C8F7C5}
+  .answers-shown{margin-top:16px}
+  .answers-shown[hidden]{display:none}
+  .answers-shown p{margin:0 0 4px;font-weight:900;text-align:center}
+  .btns[hidden]{display:none}
+  .end-box h2{margin:0;font-size:26px;font-weight:900;line-height:.95;color:#222}
+  .end-box p{margin:8px 0 0;font-size:13px;font-weight:700;opacity:.6;color:#222}
+  .end-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+  .end-replay,.end-chat{padding:12px;border:3px solid #000;border-radius:999px;font:900 14px 'Nunito',sans-serif;box-shadow:0 4px 0 #111;cursor:pointer;text-decoration:none;display:grid;place-items:center}
+  .end-replay{background:#7ED957;color:#111}
+  .end-chat{background:#000;color:#fff}
   .celebration{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
   .emoji-drop{position:absolute;top:-40px;font-size:28px;animation:emojiFall linear forwards}
   @keyframes emojiFall{
@@ -56,13 +71,31 @@
 <body>
 <a href="../chats/alex.html" class="text-[13px] font-extrabold px-3 py-1.5 rounded-full bg-white shadow-sm border border-black/10 hover:bg-white transition text-black" style="position:fixed;top:12px;left:12px;z-index:100;font-size:13px;font-weight:800;padding:6px 12px;border-radius:9999px;background:white;box-shadow:0 1px 2px rgba(0,0,0,0.1);border:1px solid rgba(0,0,0,0.1);color:rgb(17,17,17);text-decoration:none;display:inline-flex;align-items:center;">← Alex</a>
 
+<div class="end-popup" id="endPopup" role="dialog" aria-modal="true" aria-labelledby="endTitle" hidden>
+  <div class="end-box">
+    <div class="end-icon" aria-hidden="true">🏆</div>
+    <h2 id="endTitle">You did it!</h2>
+    <p>You found all the privacy words!</p>
+    <div class="end-actions">
+      <button class="end-replay" type="button" onclick="location.reload()">Replay</button>
+      <a class="end-chat" href="../chats/alex.html">Chat</a>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="board">
     <div id="grid" class="grid"></div>
     <div class="btns" style="margin-top:16px;">
-      <button class="btn" id="checkBtn">Check</button>
-      <button class="btn secondary" id="revealBtn">Reveal</button>
-      <button class="btn secondary" id="clearBtn">Clear</button>
+      <button class="btn secondary" id="revealBtn">Show me the answers</button>
+    </div>
+    <!-- After "Show me the answers": the answers stay visible, with the same choices as the end pop-up -->
+    <div class="answers-shown" id="answersShown" hidden>
+      <p>Here are all the answers.</p>
+      <div class="end-actions">
+        <button class="end-replay" type="button" onclick="location.reload()">Replay</button>
+        <a class="end-chat" href="../chats/alex.html">Chat</a>
+      </div>
     </div>
   </div>
   <div class="side">
@@ -214,18 +247,31 @@ function onInput(e){
   }
 }
 
+// The next square in a direction that can still be typed in: locked squares
+// (already part of a finished word) are skipped. Returns null at the end of the word.
+function nextOpenCell(r,c,dr,dc){
+  let nr = r+dr, nc = c+dc;
+  while(cellEls[key(nr,nc)]){
+    if(!lockedCells.has(key(nr,nc))) return {r:nr, c:nc};
+    nr += dr; nc += dc;
+  }
+  return null;
+}
+function goTo(cell){
+  if(!cell) return;
+  cellEls[key(cell.r,cell.c)].input.focus();
+  selectCell(cell.r,cell.c,false);
+}
+
 function onKeyDown(e){
   if(e.key==="Backspace" && !e.target.value){
     let r = Number(e.target.dataset.r), c = Number(e.target.dataset.c);
-    // move back in currentDir
-    let nr = r - (currentDir==="down"?1:0);
-    let nc = c - (currentDir==="across"?1:0);
-    let k = key(nr,nc);
-    if(cellEls[k] && !lockedCells.has(k)){
+    // move back in currentDir, skipping locked squares
+    const prev = nextOpenCell(r,c,currentDir==="down"?-1:0,currentDir==="across"?-1:0);
+    if(prev){
       e.preventDefault();
-      cellEls[k].input.focus();
-      cellEls[k].input.value = "";
-      selectCell(nr,nc,false);
+      cellEls[key(prev.r,prev.c)].input.value = "";
+      goTo(prev);
     }
   }
   if(e.key==="ArrowRight"){ currentDir="across"; moveDir(0,1); }
@@ -236,12 +282,7 @@ function onKeyDown(e){
 
 function moveDir(dr,dc){
   if(!selected) return;
-  let nr = selected.r+dr, nc = selected.c+dc;
-  let k = key(nr,nc);
-  if(cellEls[k] && !lockedCells.has(k)){
-    cellEls[k].input.focus();
-    selectCell(nr,nc,false);
-  }
+  goTo(nextOpenCell(selected.r,selected.c,dr,dc));
 }
 
 function isWordCorrect(p){
@@ -280,13 +321,28 @@ function dropCelebration(){
 }
 
 function checkWordsAt(r,c){
+  const before = lockedWords.size;
   for(let p of getPlacementsAt(r,c)){
     if(lockedWords.has(p.word)) continue;
     if(isWordCorrect(p)) lockWord(p);
   }
+  playWordSounds(before);
   if(lockedWords.size===PLACEMENTS.length){
-    setTimeout(()=>{ dropCelebration(); },200);
+    setTimeout(()=>{ dropCelebration(); showEndPopup(); },200);
   }
+}
+
+// End pop-up when you find every word, like the horse race's result screen.
+function showEndPopup(){
+  const pop = document.getElementById("endPopup");
+  pop.hidden = false;
+  pop.querySelector(".end-replay").focus();
+}
+
+// A finished word sparkles; the last word plays the win tune. (Reveal stays silent.)
+function playWordSounds(before){
+  if(lockedWords.size===before) return;
+  Sounds.play(lockedWords.size===PLACEMENTS.length ? "win" : "word");
 }
 
 function lockWord(p){
@@ -358,40 +414,31 @@ if(window.PhoneShell){
 
 function focusWord(p){
   currentDir=p.dir;
-  let el=cellEls[key(p.row,p.col)];
-  if(el && !lockedCells.has(key(p.row,p.col))){
-    el.input.focus();
-    selectCell(p.row,p.col,false);
-  }
+  // start at the word's first square that can still be typed in
+  const dr = p.dir==="down"?1:0, dc = p.dir==="across"?1:0;
+  goTo(lockedCells.has(key(p.row,p.col)) ? nextOpenCell(p.row,p.col,dr,dc) : {r:p.row, c:p.col});
 }
 
 function moveNext(r,c){
   // CRITICAL FIX: always continue in currentDir, never auto-switch to other direction at intersection
   // This fixes PHISHING bug where after I at (2,0) it jumped to (2,1) instead of (3,0)
-  let nr = r + (currentDir==="down"?1:0);
-  let nc = c + (currentDir==="across"?1:0);
-  let k = key(nr,nc);
-  if(cellEls[k] && !lockedCells.has(k)){
-    cellEls[k].input.focus();
-    selectCell(nr,nc,false);
-  }
+  goTo(nextOpenCell(r,c,currentDir==="down"?1:0,currentDir==="across"?1:0));
 }
 
-function checkAll(){ for(let p of PLACEMENTS) if(isWordCorrect(p)) lockWord(p); }
 function revealAll(){
+  if(lockedWords.size===PLACEMENTS.length) return;
   for(let k in solution){ let el=cellEls[k]; if(el) el.input.value=solution[k]; }
   for(let p of PLACEMENTS) lockWord(p);
-}
-function clearAll(){
-  for(let k in cellEls){ if(lockedCells.has(k)) continue; cellEls[k].input.value=""; }
+  // Keep the answers visible: swap the buttons for Replay / Chat instead of covering the grid.
+  document.querySelector(".btns").hidden = true;
+  document.getElementById("answersShown").hidden = false;
 }
 
-document.getElementById("checkBtn").onclick=checkAll;
 document.getElementById("revealBtn").onclick=revealAll;
-document.getElementById("clearBtn").onclick=clearAll;
 
 buildSolution(); assignNumbers(); createGrid(); renderBank(); renderClues(); syncSide();
 </script>
+<script src="../sounds.js"></script>
 <script src="game-help.js"></script>
 <script>
   GameHelp.mount({
@@ -403,7 +450,7 @@ buildSolution(); assignNumbers(); createGrid(); renderBank(); renderClues(); syn
       "A correct word turns <b>green</b> and locks.",
       "Click a square twice to switch between across and down.",
       "The <b>word bank</b> shows all the words you need.",
-      "Stuck? Tap <b>Reveal</b> to show all the answers. There is no timer."
+      "Stuck? Tap <b>Show me the answers</b>. There is no timer."
     ]
   });
 </script>

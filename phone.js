@@ -3,7 +3,7 @@
 // optional side panel (e.g. crossword clues) that lives outside the phone.
 (function () {
   const root = new URL(".", document.currentScript.src).href;
-  const rel = location.href.startsWith(root) ? location.href.slice(root.length) || "index.html" : "";
+  const rel = location.href.startsWith(root) ? location.href.slice(root.length) || "home.html" : "";
   const inFrame = window.self !== window.top;
 
   // Calm mode (Settings): no movement and no celebration effects, on every page.

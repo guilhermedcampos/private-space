@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="phone.js"></script>
+  <title>Home | Private Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: 'Nunito', system-ui, sans-serif;
+      background: linear-gradient(180deg, #eef1ff 0%, #f3e8ff 55%, #e9f7f1 100%);
+      color: #1f2a3d;
+      padding: 14px 18px 40px;
+    }
+
+    /* Sam's message arrives as a notification, like the one in the intro */
+    .notification {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 12px 14px; margin-bottom: 28px;
+      border: 1px solid #e3e8f5; border-radius: 20px; background: rgba(255,255,255,.92);
+      box-shadow: 0 8px 22px #3d5c9720; text-decoration: none; color: inherit;
+    }
+    .notification img { width: 38px; height: 38px; border-radius: 10px; image-rendering: pixelated; flex-shrink: 0; }
+    .notification-text { min-width: 0; font-size: 14px; line-height: 1.35; }
+    .notification-text strong { display: flex; justify-content: space-between; font-size: 13px; }
+    .notification-text strong span { color: #8b9bb2; font-weight: 700; }
+    .notification-text p { margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px 12px; }
+    .app {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      border: 0; background: none; padding: 0; font: inherit; color: inherit; text-decoration: none; cursor: pointer;
+    }
+    .app-icon { width: 64px; height: 64px; border-radius: 16px; position: relative; display: grid; place-items: center; }
+    .app-icon img { width: 100%; height: 100%; image-rendering: pixelated; }
+    .app-name { font-size: 12px; font-weight: 800; text-align: center; line-height: 1.2; }
+
+    /* Other courses: shown as still downloading, like on a real phone */
+    .app.downloading { cursor: default; }
+    .app.downloading .app-icon { background: #111; }
+    .app.downloading .ring { position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; }
+    .app.downloading .app-name { color: #8b9bb2; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%);
+      padding: 10px 16px; border-radius: 999px; background: #1f2a3d; color: #fff;
+      font-size: 13px; font-weight: 800; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <a class="notification" href="index.html" aria-label="Open Private Space: new message from Sam">
+    <img src="img/intro/app-icon.png" alt="">
+    <span class="notification-text">
+      <strong>Private Space <span>now</span></strong>
+      <p>Sam: Hey, are you free? Something weird just hit the news.</p>
+    </span>
+  </a>
+
+  <nav class="apps" aria-label="Apps">
+    <a class="app" href="index.html">
+      <span class="app-icon"><img src="img/intro/app-icon.png" alt=""></span>
+      <span class="app-name">Private Space</span>
+    </a>
+  </nav>
+
+  <p class="toast" id="toast" role="status" hidden></p>
+
+  <script>
+    // Other courses that could exist later (R10). They can't be opened yet.
+    const comingSoon = [0.65, 0.4, 0.8, 0.25, 0.55].map((progress) => ({ name: "[Placeholder]", progress }));
+    const apps = document.querySelector(".apps");
+    const toast = document.getElementById("toast");
+    let toastTimer;
+    comingSoon.forEach((app) => {
+      const c = 2 * Math.PI * 15;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "app downloading";
+      button.setAttribute("aria-label", `${app.name}: still downloading`);
+      button.innerHTML =
+        `<span class="app-icon">` +
+        `<svg class="ring" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/>` +
+        `<circle cx="17" cy="17" r="15" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="${c * app.progress} ${c}" transform="rotate(-90 17 17)"/></svg></span>` +
+        `<span class="app-name">${app.name}</span>`;
+      button.addEventListener("click", () => {
+        toast.textContent = "This app is still downloading. Try Private Space!";
+        toast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 2500);
+      });
+      apps.appendChild(button);
+    });
+  </script>
+</body>
+</html>

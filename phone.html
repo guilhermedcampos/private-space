@@ -8,7 +8,7 @@
   <script>
     // On small screens, skip the frame and open the page directly.
     if (window.matchMedia("(max-width: 500px) and (pointer: coarse)").matches) {
-      location.replace(location.hash.slice(1) || "index.html");
+      location.replace(location.hash.slice(1) || "home.html");
     }
   </script>
   <style>
@@ -16,7 +16,7 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; }
     body {
-      background: #ece6dc;
+      background: #fff;
       font-family: 'Nunito', system-ui, sans-serif;
       color: #1d1d1f;
       display: flex;
@@ -31,6 +31,7 @@
       transform-origin: center center;
       flex-shrink: 0;
     }
+    .lift { position: relative; width: 100%; height: 100%; }
     .phone {
       width: 100%;
       height: 100%;
@@ -97,6 +98,7 @@
 </head>
 <body>
   <div class="stage" id="stage">
+    <div class="lift" id="lift">
     <div class="phone">
       <div class="screen">
         <div class="island" aria-hidden="true"></div>
@@ -111,6 +113,7 @@
         <div class="home-bar" aria-hidden="true"></div>
       </div>
     </div>
+    </div>
   </div>
 
   <aside class="side" id="side" hidden aria-label="Help next to the phone"></aside>
@@ -120,7 +123,14 @@
     const side = document.getElementById("side");
     const stage = document.getElementById("stage");
 
-    frame.src = location.hash.slice(1) || "index.html";
+    // Opening the site (no page, the Welcome page, or #intro) starts on the phone's home screen,
+    // where the intro plays. The Welcome page opens from the Private Space icon.
+    let startPage = location.hash.slice(1);
+    if (!startPage || startPage === "intro" || startPage === "index.html") {
+      if (startPage !== "intro") history.replaceState(null, "", "#home.html");
+      startPage = "home.html";
+    }
+    frame.src = startPage;
 
     // The phone comes first: it fills the window height (also on a projector).
     // A side panel (e.g. crossword clues) gets the space left over and shrinks to fit it.
@@ -161,5 +171,6 @@
       if (el) frame.contentWindow.postMessage({ type: "phone:side-click", action: el.dataset.sideAction }, "*");
     });
   </script>
+  <script src="intro.js?v=7"></script>
 </body>
 </html>

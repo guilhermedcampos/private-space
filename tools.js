@@ -216,31 +216,40 @@
   }
 
   // ---- Settings ----
+  const SOUND_KEY = "private-space-sound";
+  function settingRow(panel, { name, help, get, set }) {
+    const row = el("div", "setting-row");
+    const textBox = el("div");
+    textBox.append(el("p", "setting-name", name), el("p", "setting-help", help));
+    const toggle = el("button", "switch");
+    toggle.type = "button";
+    toggle.setAttribute("role", "switch");
+    toggle.setAttribute("aria-label", name);
+    toggle.innerHTML = '<span class="switch-knob" aria-hidden="true"></span>';
+    const sync = () => toggle.setAttribute("aria-checked", String(get()));
+    toggle.addEventListener("click", () => { set(!get()); sync(); });
+    sync();
+    row.append(textBox, toggle);
+    panel.append(row);
+    return toggle;
+  }
+
   const isCalm = () => read(CALM_KEY, false) === true;
+  const isSoundOn = () => read(SOUND_KEY, true) !== false;
   function openSettings() {
     openSheet("Settings", (panel) => {
-      const row = el("div", "setting-row");
-      const textBox = el("div");
-      textBox.append(
-        el("p", "setting-name", "Calm mode"),
-        el("p", "setting-help", "Turns off movement: typing dots, moving clouds and horses, and confetti. Everything else stays the same.")
-      );
-      const toggle = el("button", "switch");
-      toggle.type = "button";
-      toggle.setAttribute("role", "switch");
-      toggle.setAttribute("aria-label", "Calm mode");
-      toggle.dataset.autofocus = "";
-      toggle.innerHTML = '<span class="switch-knob" aria-hidden="true"></span>';
-      const sync = () => toggle.setAttribute("aria-checked", String(isCalm()));
-      toggle.addEventListener("click", () => {
-        const next = !isCalm();
-        write(CALM_KEY, next);
-        document.documentElement.classList.toggle("calm", next);
-        sync();
+      settingRow(panel, {
+        name: "Calm mode",
+        help: "Turns off movement: typing dots, moving clouds and horses, and confetti. Everything else stays the same.",
+        get: isCalm,
+        set: (on) => { write(CALM_KEY, on); document.documentElement.classList.toggle("calm", on); }
+      }).dataset.autofocus = "";
+      settingRow(panel, {
+        name: "Sound",
+        help: "Plays short sounds in the games, like when you get an answer right, finish a word, or win a race.",
+        get: isSoundOn,
+        set: (on) => write(SOUND_KEY, on)
       });
-      sync();
-      row.append(textBox, toggle);
-      panel.append(row);
     });
   }
 

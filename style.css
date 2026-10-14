@@ -61,17 +61,14 @@ body {
   background: radial-gradient(circle, #d5f8e9 0%, #e9fbf3 58%, transparent 72%);
 }
 
+/* The app icon on the Welcome page (same icon as on the phone's home screen) */
 .logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 22px;
-  background: linear-gradient(145deg, #5579ff, #8c5be9);
-  color: white;
-  display: grid;
-  place-items: center;
+  display: block;
+  width: 76px;
+  height: 76px;
   margin-bottom: 36px;
-  font-size: 24px;
-  box-shadow: 0 14px 30px #6379e94a, inset 0 1px 0 #ffffff70;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 12px 22px #6379e955);
   transform: rotate(-5deg);
 }
 
