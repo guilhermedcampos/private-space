@@ -592,7 +592,7 @@
     async function teachTip1() {
       setConversationPhase("agency-tip1");
       await samReplies([
-        "1. Check: apps have privacy / history settings. You can see everything they saved about you there.",
+        "1. Check: apps have <strong>privacy / history settings</strong>. You can see everything they saved about you there.",
       ]);
       showOptions([{ label: "Okay", action: teachTip2 }]);
     }
@@ -600,7 +600,7 @@
     async function teachTip2() {
       setConversationPhase("agency-tip2");
       await samReplies([
-        "2. Pause / Clear: you can pause watch history or clear searches.",
+        "2. Pause / Clear: you can <strong>pause</strong> watch history or <strong>clear</strong> searches.",
       ]);
       showOptions([{ label: "Got it", action: teachTip3 }]);
     }
@@ -608,7 +608,7 @@
     async function teachTip3() {
       setConversationPhase("agency-tip3");
       await samReplies([
-        "3. Incognito: use it when you explore stuff you don't want saved. It doesn't make you invisible, though."
+        "3. <strong>Incognito</strong>: use it when you explore stuff you don't want saved. It doesn't make you invisible, though."
       ]);
       showOptions([{ label: "Makes sense", action: teachWrapUp }]);
     }
@@ -745,13 +745,13 @@
         }
         // FIX: don't re-send the tip message, just show the next button
         if (conversationPhase === "agency-intro") {
-          showOptions([{ label: "Show me", action: teachTip1 }]);
+          showOptions([{ label: "Show me.", action: teachTip1 }]);
         } else if (conversationPhase === "agency-tip1") {
-          showOptions([{ label: "Okay", action: teachTip2 }]);
+          showOptions([{ label: "Okay!", action: teachTip2 }]);
         } else if (conversationPhase === "agency-tip2") {
-          showOptions([{ label: "Got it", action: teachTip3 }]);
+          showOptions([{ label: "Got it!", action: teachTip3 }]);
         } else if (conversationPhase === "agency-tip3") {
-          showOptions([{ label: "Makes sense", action: teachWrapUp }]);
+          showOptions([{ label: "Makes sense.", action: teachWrapUp }]);
         } else if (conversationPhase === "agency-done") {
           reactToGame();
         }
