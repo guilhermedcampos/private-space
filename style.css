@@ -766,3 +766,29 @@ input:focus-visible {
 .cookie-banner { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px dashed #94a3b8; color: #334155; font-size: 14px; line-height: 1.5; font-weight: 700; }
 /* Highlighted replies without an arrow are centred, like the other replies */
 .reply-button.primary:not(:has(.arrow)) { justify-content: center; text-align: center; }
+
+.reply-button:disabled { opacity: .5; cursor: default; transform: none; }
+
+/* Every reply looks the same: no option is highlighted, so none is pushed on the learner.
+   (".primary" is kept in the code only as a hook; it no longer changes the look.) */
+.reply-button.primary,
+.reply-button.primary:hover {
+  min-height: 53px;
+  padding: 14px 16px;
+  justify-content: center;
+  text-align: center;
+  background: white;
+  border: 1px solid #dce4f3;
+  color: #425671;
+  box-shadow: none;
+}
+.reply-button.primary:hover { background: #edf2ff; color: #344d78; }
+.reply-button .arrow { display: none; }
+.reply-button:not(:hover):not(:disabled) { background: white; }
+
+/* Quiz cards: the repeated intro is quieter than the question, so the question is read first. */
+.lesson-intro { color: #6b7a90; font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+
+/* Game invite: "Play" and "Skip" look the same, like every other choice in the chats */
+a.reply-button { text-decoration: none; }
+.game-play { margin-bottom: 14px; }

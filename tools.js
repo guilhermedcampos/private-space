@@ -267,27 +267,61 @@
       `<span><strong>Summary</strong><br>${summary.title}</span></button>`;
   }
 
-  // Chat header: Summary, and Rewind to start the chat from the first message.
+  // ---- Undo: each chat saves where it was just before every reply the learner taps ----
+  const undoKey = (storageKey) => `${storageKey}-undo`;
+  function readUndo(storageKey) {
+    try { return JSON.parse(sessionStorage.getItem(undoKey(storageKey)) || "[]"); } catch { return []; }
+  }
+  // Call at the start of every reply/answer click, before the chat changes.
+  function snapshot(storageKey) {
+    try {
+      const steps = readUndo(storageKey);
+      steps.push(sessionStorage.getItem(storageKey));
+      sessionStorage.setItem(undoKey(storageKey), JSON.stringify(steps.slice(-50)));
+    } catch { /* storage unavailable */ }
+  }
+  function undoLastReply(storageKey) {
+    const steps = readUndo(storageKey);
+    if (!steps.length) return;
+    const before = steps.pop();
+    try {
+      if (before === null) sessionStorage.removeItem(storageKey);
+      else sessionStorage.setItem(storageKey, before);
+      sessionStorage.setItem(undoKey(storageKey), JSON.stringify(steps));
+    } catch { /* storage unavailable */ }
+    location.reload();
+  }
+
+  // Chat header: Summary, and ↺ to undo the last reply or start the chat again.
   function mountChatHeader({ summary, storageKey }) {
     document.getElementById("summaryButton").addEventListener("click", () => openSummary(summary));
     document.getElementById("rewindButton").addEventListener("click", () => {
-      openSheet("Start this chat again?", (panel, close) => {
-        panel.append(el("p", "sheet-intro", "This clears the messages in this chat and starts again from the first message. Your notes stay saved."));
+      openSheet("Go back?", (panel, close) => {
+        panel.append(el("p", "sheet-intro", "Undo your last reply to try a different one, or start this chat again from the first message. Your notes stay saved."));
         const actions = el("div", "confirm-actions");
-        const yes = el("button", "reply-button primary", "Yes, start again");
+        const undo = el("button", "reply-button primary", "Undo my last reply");
+        const restart = el("button", "reply-button", "Start the chat again");
         const no = el("button", "reply-button", "No, keep my chat");
-        yes.type = no.type = "button";
+        undo.type = restart.type = no.type = "button";
         no.dataset.autofocus = "";
-        yes.addEventListener("click", () => {
-          try { sessionStorage.removeItem(storageKey); } catch { /* storage unavailable */ }
+        if (!readUndo(storageKey).length) {
+          undo.disabled = true;
+          undo.textContent = "Undo my last reply (nothing to undo yet)";
+        }
+        undo.addEventListener("click", () => undoLastReply(storageKey));
+        restart.addEventListener("click", () => {
+          try {
+            sessionStorage.removeItem(storageKey);
+            sessionStorage.removeItem(undoKey(storageKey));
+          } catch { /* storage unavailable */ }
           location.reload();
         });
         no.addEventListener("click", () => close());
-        actions.append(yes, no);
+        actions.append(undo, restart, no);
         panel.append(actions);
       });
     });
   }
 
-  window.Tools = { openNotes, openSummary, openSettings, summaryCardHTML, mountChatHeader, SUMMARIES };
+  window.Tools = { openNotes, openSummary, openSettings, summaryCardHTML, mountChatHeader, snapshot, SUMMARIES };
 })();

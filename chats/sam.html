@@ -141,7 +141,7 @@
 
         <!-- HORSE RACE EMBED - PLAY above image -->
         <div id="horseRaceEmbed" style="display:none; margin:24px 16px 36px; text-align:center;">
-          <a href="../minigames/horse_race.html" style="display:inline-flex; align-items:center; justify-content:center; width:100%; max-width:320px; background:#1a1a1a; color:#fff; font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; padding:14px 32px; border-radius:14px; text-decoration:none; box-shadow:0 5px 0 #000, 0 8px 20px rgba(0,0,0,0.22); margin-bottom:14px;">▶ PLAY</a>
+          <a class="reply-button game-play" href="../minigames/horse_race.html">▶ Play</a>
           <div style="border-radius:18px; overflow:hidden; background:#78C96E; box-shadow:0 8px 24px rgba(0,0,0,0.12); border:2px solid #e8e8e8;">
             <img src="/img/horse_race.png" alt="Horse Race" style="width:100%; display:block; image-rendering:pixelated; aspect-ratio:16/9; object-fit:cover;" onerror="this.src='../img/horse_race.png'">
           </div>
@@ -244,6 +244,7 @@
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
       state.quizAnswer = quizAnswer;
+      state.finished = conversationPhase === "agency-done"; // shown as "✓ Finished" in Messages
       state.afterGameMessages = [...afterGameMessages.children].map((m) => ({
         text: m.innerHTML,
         sender: m.classList.contains("sent") ? "sent" : "received"
@@ -360,6 +361,7 @@
 
         button.addEventListener("click", () => {
           if (!waitingForChoice) return;
+          Tools.snapshot(conversationStorageKey); // saved so "Undo my last reply" can come back here
 
           waitingForChoice = false;
           replyPanel.hidden = true;
@@ -497,6 +499,7 @@
     // Initial choice: continue or come back later.
     continueButton.addEventListener("click", async () => {
       if (conversationStarted) return;
+      Tools.snapshot(conversationStorageKey); // saved so "Undo my last reply" can come back here
 
       conversationStarted = true;
       setConversationPhase("first-response");
@@ -529,6 +532,7 @@
 
     summaryRequestButton.addEventListener("click", async () => {
       if (summaryShared || conversationStarted) return;
+      Tools.snapshot(conversationStorageKey); // saved so "Undo my last reply" can come back here
       summaryShared = true;
       replyPanel.hidden = true;
       unlockedConversation.hidden = false;
@@ -539,6 +543,7 @@
 
     skipGameButton.addEventListener("click", async () => {
       if (gameSkipped) return;
+      Tools.snapshot(conversationStorageKey); // saved so "Undo my last reply" can come back here
       gameSkipped = true;
       document.getElementById("horseRaceEmbed").style.display = "none";
       await sendSummary("I'll skip the game. Can I see the summary?", "Of course! Here are the main points.");
@@ -677,9 +682,12 @@
       }
       saveConversationState();
     }
-    showAnswerButton.addEventListener("click", () => showQuizResult("shown"));
+    showAnswerButton.addEventListener("click", () => { Tools.snapshot(conversationStorageKey); showQuizResult("shown"); });
     quizChoices.forEach((choice) => {
-      choice.addEventListener("click", () => showQuizResult(choice.dataset.answer === "correct" ? "correct" : "incorrect"));
+      choice.addEventListener("click", () => {
+        Tools.snapshot(conversationStorageKey);
+        showQuizResult(choice.dataset.answer === "correct" ? "correct" : "incorrect");
+      });
     });
     continueQuizButton.addEventListener("click", sendFinalInsight);
 

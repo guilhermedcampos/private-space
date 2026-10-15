@@ -20,6 +20,11 @@
     .video-placeholder .play-symbol { font-size: 32px; }
     .guide-player iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 14px; }
     .guide-caption { font-size: 13px; font-weight: 800; margin: 0 0 10px; }
+    /* One quiz box that changes question; arrows look back at earlier questions */
+    .quiz-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .quiz-nav .quiz-label { margin: 0; }
+    .quiz-arrow { width: 32px; height: 32px; padding: 0; border: 1px solid #dce4f3; border-radius: 50%; background: #fff; color: #425671; font: 900 18px/1 inherit; cursor: pointer; box-shadow: none; }
+    .quiz-arrow:disabled { opacity: .35; cursor: default; }
     .guide-hint { font-size: 12px; color: #718198; line-height: 1.5; margin: 14px 0 0; }
     .guide-views { margin-bottom: 12px; }
     .guide-views .guide-choice { min-height: 48px; }
@@ -58,7 +63,11 @@
         <h2 class="lesson-heading" id="cookieHeading">Cookie Detective</h2>
         <p class="lesson-intro">Different cookies have different purposes. Which help the website function, and which may track browsing?</p>
         <div class="quiz-card">
-          <p class="quiz-label" id="cookieProgress"></p>
+          <div class="quiz-nav">
+            <button class="quiz-arrow" id="cookiePrev" type="button" aria-label="Previous cookie">‹</button>
+            <p class="quiz-label" id="cookieProgress"></p>
+            <button class="quiz-arrow" id="cookieNextView" type="button" aria-label="Next cookie">›</button>
+          </div>
           <h3 class="quiz-question" id="cookieQuestion" tabindex="-1"></h3>
           <div class="quiz-choices">
             <button class="quiz-choice" id="functionalChoice" type="button">Functional</button>
@@ -181,6 +190,19 @@
       return safe.innerHTML.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     }
 
+    function fillDetective(parts, i, result) {
+      const entry = cookieCases[i];
+      parts.label.textContent = `Cookie ${i + 1} of ${cookieCases.length}`;
+      parts.question.textContent = entry.question;
+      parts.choices.forEach(([answer, button]) => {
+        button.disabled = !!result;
+        button.classList.toggle("correct-answer", !!result && answer === entry.answer);
+      });
+      parts.feedback.hidden = !result;
+      parts.feedback.textContent = !result ? "" : result.shown ? entry.explanation
+        : `${result.answer === entry.answer ? "Exactly!" : "Not quite, and that's okay!"} ${entry.explanation}`;
+    }
+
     // An answered quiz question stays in the chat as its own card, like Sam's quiz,
     // so the right answer can be looked at again. Saved as [[quiz:{...}]] in the messages.
     function answeredQuizCard(data) {
@@ -190,6 +212,35 @@
       const box = make("div", "quiz-card");
       const choices = make("div", "quiz-choices");
       let feedback;
+      if (data.kind === "detective-all") {
+        card.append(make("h2", "lesson-heading", "Cookie Detective"),
+          make("p", "lesson-intro", "Different cookies have different purposes. Which help the website function, and which may track browsing?"));
+        const nav = make("div", "quiz-nav");
+        const prev = make("button", "quiz-arrow", "‹");
+        const next = make("button", "quiz-arrow", "›");
+        prev.setAttribute("aria-label", "Previous cookie");
+        next.setAttribute("aria-label", "Next cookie");
+        const parts = {
+          label: make("p", "quiz-label", ""),
+          question: make("h3", "quiz-question", ""),
+          choices: ["functional", "tracking"].map((answer) => [answer, make("button", "quiz-choice", answer === "functional" ? "Functional" : "Tracking")]),
+          feedback: make("div", "quiz-feedback", "")
+        };
+        nav.append(prev, parts.label, next);
+        parts.choices.forEach(([, button]) => choices.append(button));
+        let view = data.results.length - 1;
+        const show = () => {
+          fillDetective(parts, view, data.results[view]);
+          prev.disabled = view === 0;
+          next.disabled = view === data.results.length - 1;
+        };
+        prev.addEventListener("click", () => { view -= 1; show(); });
+        next.addEventListener("click", () => { view += 1; show(); });
+        show();
+        box.append(nav, parts.question, choices, parts.feedback);
+        card.append(box);
+        return card;
+      }
       if (data.kind === "detective") {
         const entry = cookieCases[data.i];
         card.append(make("h2", "lesson-heading", "Cookie Detective"));
@@ -431,6 +482,7 @@
         back.href = "../messages.html";
         back.textContent = "← Back to all messages";
         options.appendChild(back);
+        if (!state.finished) { state.finished = true; save(); } // shown as "✓ Finished" in Messages
         return;
       }
       waitingForChoice = true;
@@ -442,6 +494,7 @@
         button.textContent = choice.label;
         button.addEventListener("click", () => {
           if (!waitingForChoice) return;
+          Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
           if (choice.later) { window.location.href = "../messages.html"; return; }
           waitingForChoice = false;
           panel.hidden = true;
@@ -475,12 +528,13 @@
         button.textContent = label;
         button.addEventListener("click", () => {
           if (!waitingForChoice) return;
+          Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
           waitingForChoice = false;
           panel.hidden = true;
           addMessage(index === 0 ? "Let's play Cookie Detective!" : "I'll skip the game. Can I see the summary?", "sent");
           state.cookieGame = index === 0 ? "playing" : "skipped";
           if (index === 1) recordActivity("cookie-detective");
-          if (index === 0) { state.cookieCase = 0; state.cookieAnswer = null; }
+          if (index === 0) { state.cookieCase = 0; state.cookieAnswer = null; state.cookieResults = []; state.cookieView = null; }
           if (index === 1) state.pendingFeedback = ["Of course! Here are the main points.", "[[summary]]", "If you want to play later, rewind the chat with the ↺ button at the top."];
           save();
           if (index === 0) showCookieQuiz();
@@ -512,28 +566,38 @@
       cookieQuiz.hidden = false;
       // Existing saved games from the separate page start here as well.
       if (!Number.isInteger(state.cookieCase) || state.cookieCase < 0 || state.cookieCase >= cookieCases.length) state.cookieCase = 0;
-      const entry = cookieCases[state.cookieCase];
+      state.cookieResults = state.cookieResults || [];
+      // Looking back at an earlier question (with ‹), or at the current one?
+      const view = Number.isInteger(state.cookieView) && state.cookieView < state.cookieCase ? state.cookieView : state.cookieCase;
+      const current = view === state.cookieCase;
       const answered = ["functional", "tracking"].includes(state.cookieAnswer);
-      document.getElementById("cookieProgress").textContent = `Cookie ${state.cookieCase + 1} of ${cookieCases.length}`;
-      cookieQuestion.textContent = entry.question;
-      Object.entries(cookieChoices).forEach(([answer, button]) => {
-        button.disabled = answered;
-        button.classList.toggle("correct-answer", answered && answer === entry.answer);
-      });
-      cookieFeedback.hidden = !answered;
-      cookieFeedback.textContent = !answered ? "" : state.cookieShown ? entry.explanation
-        : `${state.cookieAnswer === entry.answer ? "Exactly!" : "Not quite, and that's okay!"} ${entry.explanation}`;
-      nextCookie.hidden = !answered;
-      document.getElementById("skipCookies").hidden = answered;
+      const result = current ? (answered ? { answer: state.cookieAnswer, shown: !!state.cookieShown } : null) : state.cookieResults[view];
+      fillDetective({ label: document.getElementById("cookieProgress"), question: cookieQuestion,
+        choices: Object.entries(cookieChoices), feedback: cookieFeedback }, view, result);
+      document.getElementById("cookiePrev").disabled = view === 0;
+      document.getElementById("cookieNextView").disabled = current;
+      nextCookie.hidden = !(current && answered);
+      document.getElementById("skipCookies").hidden = !current || answered;
       nextCookie.textContent = state.cookieCase === cookieCases.length - 1 ? "Continue chatting →" : "Next cookie →";
       save();
-      (answered ? nextCookie : cookieQuestion).focus({ preventScroll: true });
+      if (current) (answered ? nextCookie : cookieQuestion).focus({ preventScroll: true });
       scrollToLatest();
     }
+    document.getElementById("cookiePrev").addEventListener("click", () => {
+      const view = Number.isInteger(state.cookieView) ? state.cookieView : state.cookieCase;
+      state.cookieView = Math.max(0, view - 1);
+      showCookieQuiz();
+    });
+    document.getElementById("cookieNextView").addEventListener("click", () => {
+      const view = (Number.isInteger(state.cookieView) ? state.cookieView : state.cookieCase) + 1;
+      state.cookieView = view >= state.cookieCase ? null : view;
+      showCookieQuiz();
+    });
 
     Object.entries(cookieChoices).forEach(([answer, button]) => {
       button.addEventListener("click", () => {
         if (state.cookieGame !== "playing" || state.cookieAnswer) return;
+        Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
         state.cookieAnswer = answer;
         showCookieQuiz();
       });
@@ -541,6 +605,11 @@
 
     function finishCookieQuiz(skipped) {
       cookieQuiz.hidden = true;
+      // The finished quiz stays in the chat as one box, with arrows to look at each question.
+      if (state.cookieResults && state.cookieResults.length) {
+        addMessage(`[[quiz:${JSON.stringify({ kind: "detective-all", results: state.cookieResults })}]]`, "received");
+        state.cookieResults = [];
+      }
       state.cookieGame = skipped ? "skipped" : "completed";
       recordActivity("cookie-detective");
       state.cookieAnswer = null;
@@ -551,7 +620,9 @@
 
     nextCookie.addEventListener("click", () => {
       if (state.cookieGame !== "playing" || !state.cookieAnswer) return;
-      addMessage(`[[quiz:${JSON.stringify({ kind: "detective", i: state.cookieCase, answer: state.cookieAnswer, shown: !!state.cookieShown })}]]`, "received");
+      state.cookieResults = state.cookieResults || [];
+      state.cookieResults[state.cookieCase] = { answer: state.cookieAnswer, shown: !!state.cookieShown };
+      state.cookieView = null;
       state.cookieCase += 1;
       state.cookieAnswer = null;
       state.cookieShown = false;
@@ -560,6 +631,7 @@
     });
     document.getElementById("skipCookies").addEventListener("click", () => {
       if (state.cookieGame !== "playing" || state.cookieAnswer) return;
+      Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
       state.cookieAnswer = cookieCases[state.cookieCase].answer;
       state.cookieShown = true;
       showCookieQuiz();
@@ -584,6 +656,7 @@
         button.disabled = answered;
         button.addEventListener("click", () => {
           if (Number.isInteger(state.schoolAnswer)) return;
+          Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
           state.schoolAnswer = index;
           save();
           showCookieSchool();
@@ -611,6 +684,7 @@
     schoolContinue.addEventListener("click", finishCookieSchool);
     schoolSkip.addEventListener("click", () => {
       if (Number.isInteger(state.schoolAnswer)) return;
+      Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
       state.schoolAnswer = -1;
       save();
       showCookieSchool();

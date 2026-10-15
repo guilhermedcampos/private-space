@@ -44,6 +44,16 @@ function updatePreviews() {
       const list = state ? messages(state) : [];
       const latest = list[list.length - 1];
       if (latest) preview.textContent = `${latest.sender === "sent" ? "You" : name}: ${previewText(latest.text)}`;
+
+      // A finished chat gets a "✓ Finished" label next to the contact's name.
+      const heading = preview.closest(".conversation").querySelector(".contact-name");
+      let badge = heading.querySelector(".finished-badge");
+      if (state?.finished && !badge) {
+        badge = document.createElement("span");
+        badge.className = "finished-badge";
+        badge.textContent = "✓ Finished";
+        heading.append(badge);
+      } else if (!state?.finished && badge) badge.remove();
     } catch {
       // Keep the default preview if browser storage is unavailable or malformed.
     }

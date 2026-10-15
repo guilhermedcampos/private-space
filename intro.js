@@ -20,7 +20,7 @@
     #intro { position: fixed; inset: 0; z-index: 100; background: #fff; overflow: hidden; font-family: 'Nunito', system-ui, sans-serif; }
     #intro .char { position: absolute; bottom: calc(14vh - 2px); height: min(56vh, 560px); image-rendering: pixelated; pointer-events: none; }
     #intro .char.shake { animation: introShake .12s linear infinite; }
-    #intro .char.zoom { transform-origin: 80% 25%; /* where the phone is in surprised.png */ animation: introZoom .9s ease-in forwards; }
+    #intro .char.zoom { transform-origin: 74% 25%; /* where the phone is in surprised.png */ animation: introZoom .9s ease-in forwards; }
     @keyframes introZoom { to { transform: scale(5); opacity: 0; } }
     @keyframes introShake { 0%,100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
     #intro .start { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; color: #3a2f22; }
@@ -55,8 +55,8 @@
 
   // The hand from the intro art holds our real phone: the phone's edges sit under the thumb
   // and fingers, and its bottom is tucked behind the palm.
-  // Numbers are positions in hand.webp (1089×1444) where the phone's edges go.
-  const HAND = { w: 1089, phoneLeft: 225, phoneRight: 880, phoneBottom: 1070 };
+  // Numbers are positions in hand.webp (1376×1824) where the phone's edges go.
+  const HAND = { w: 1376, phoneLeft: 290, phoneRight: 1080, phoneBottom: 1360 };
   const hands = [];
   function addHands() {
     const k = lift.offsetWidth / (HAND.phoneRight - HAND.phoneLeft);
@@ -106,14 +106,17 @@
       const width = char.offsetWidth;
       const from = -width, to = (innerWidth - width) / 2;
       const begin = performance.now();
-      function step(now) {
-        if (skipped) { reject(); return; }
-        const p = Math.min(1, (now - begin) / duration);
+      char.style.left = `${from}px`;
+      // A plain timer (not requestAnimationFrame), so the walk still finishes in the middle
+      // even if the browser window is in the background, e.g. while screen sharing.
+      const timer = setInterval(() => {
+        if (skipped) { clearInterval(timer); reject(); return; }
+        const elapsed = performance.now() - begin;
+        const p = Math.min(1, elapsed / duration);
         char.style.left = `${from + (to - from) * p}px`;
-        char.src = `${IMG}walk-${(Math.floor((now - begin) / 130) % 6) + 1}.png`;
-        if (p < 1) requestAnimationFrame(step); else resolve();
-      }
-      requestAnimationFrame(step);
+        char.src = `${IMG}walk-${(Math.floor(elapsed / 130) % 6) + 1}.png`;
+        if (p === 1) { clearInterval(timer); resolve(); }
+      }, 33);
     });
   }
 

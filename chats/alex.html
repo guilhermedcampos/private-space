@@ -43,7 +43,7 @@
 
       <!-- CROSSWORD EMBED - same invite as Sam's horse race: PLAY above the image, then skip -->
       <div id="crosswordEmbed" style="display:none; margin:24px 16px 36px; text-align:center;">
-        <a href="../minigames/crosswords.html" style="display:inline-flex; align-items:center; justify-content:center; width:100%; max-width:320px; background:#1a1a1a; color:#fff; font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; padding:14px 32px; border-radius:14px; text-decoration:none; box-shadow:0 5px 0 #000, 0 8px 20px rgba(0,0,0,0.22); margin-bottom:14px;">▶ PLAY</a>
+        <a class="reply-button game-play" href="../minigames/crosswords.html">▶ Play</a>
         <div style="border-radius:18px; overflow:hidden; background:#78C96E; box-shadow:0 8px 24px rgba(0,0,0,0.12); border:2px solid #e8e8e8;">
           <img src="../img/crossword.png" alt="Crossword" style="width:100%; display:block; image-rendering:pixelated; aspect-ratio:16/9; object-fit:cover;">
         </div>
@@ -118,7 +118,11 @@
         button.type = "button";
         button.className = index === 0 ? "reply-button primary" : "reply-button";
         button.textContent = label;
-        button.addEventListener("click", () => { panel.hidden = true; onChoose(label); });
+        button.addEventListener("click", () => {
+          Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
+          panel.hidden = true;
+          onChoose(label);
+        });
         return button;
       }));
       panel.hidden = false;
@@ -132,6 +136,7 @@
       back.textContent = "← Back to all messages";
       options.replaceChildren(back);
       panel.hidden = false;
+      if (!state.finished) { state.finished = true; save(); } // shown as "✓ Finished" in Messages
       scrollToLatest();
     }
 
@@ -182,6 +187,7 @@
 
     document.getElementById("skipGameButton").addEventListener("click", async () => {
       if (state.phase !== "game") return;
+      Tools.snapshot(storageKey); // saved so "Undo my last reply" can come back here
       state.phase = "skipped";
       save();
       embed.style.display = "none";
