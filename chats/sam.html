@@ -101,12 +101,12 @@
           </h2>
 
           <p class="lesson-intro">
-            Imagine you regularly watch videos about baking and follow several cooking accounts.
+            Imagine you regularly search for flight prices and hotels in another city for a specific weekend next month. 
           </p>
 
           <div class="quiz-card">
             <h3 class="quiz-question">
-              What could an app predict from this activity?
+              What could an app guess from this activity?
             </h3>
 
             <div class="quiz-choices" id="quizChoices">
@@ -114,7 +114,7 @@
                 A. Only that you own a phone.
               </button>
               <button class="quiz-choice" data-answer="correct">
-                B. That you may be interested in baking.
+                B. That you will be away from your home during those specific dates.
               </button>
               <button class="quiz-choice" data-answer="wrong">
                 C. Nothing, because you never explicitly told the app.
@@ -126,10 +126,95 @@
 
           <!-- Skipping a question always shows its answer (same in every quiz) -->
           <div id="quizExtraActions" style="display: grid; gap: 10px; margin-top: 16px;">
-            <button id="continueQuizButton" class="reply-button primary" type="button" hidden>Continue chatting →</button>
+            <button id="continueQuizButton" class="reply-button primary" type="button" hidden>Continue quiz →</button>
             <button id="showAnswerButton" class="reply-button" type="button">Skip, show me the answer</button>
           </div>
 
+        </section>
+
+        <section id="lesson2" class="lesson" aria-labelledby="quizHeading2" hidden>
+          <h2 class="lesson-heading" id="quizHeading2">
+            Detective Challenge 2
+          </h2>
+
+          <p class="lesson-intro">
+            Imagine you're browsing the internet in Incognito (Private) mode.
+          </p>
+
+          <div class="quiz-card">
+            <h3 class="quiz-question">
+              What actually happens when you browse in Incognito mode?
+            </h3>
+
+            <div class="quiz-choices" id="quizChoices2">
+              <button class="quiz-choice quiz-choice2" data-answer="correct">
+                A. Your phone won't save your search history or cookies after you close the tab.
+              </button>
+
+              <button class="quiz-choice quiz-choice2" data-answer="wrong">
+                B. You become completely invisible to websites, internet providers, and ads. 
+              </button>
+
+              <button class="quiz-choice quiz-choice2" data-answer="wrong">
+                C.  It stops websites from loading images and videos.
+              </button>
+            </div>
+
+            <div id="feedback2" role="status" aria-live="polite" hidden></div>
+          </div>
+
+          <div id="quizExtraActions2" style="display:grid; gap:10px; margin-top:16px;">
+            <button id="continueQuizButton2" class="reply-button primary" type="button" hidden>
+              Continue quiz →
+            </button>
+
+            <button id="showAnswerButton2" class="reply-button" type="button">
+              Skip, show me the answer
+            </button>
+          </div>
+        </section>
+
+        <section id="lesson3" class="lesson" aria-labelledby="quizHeading3" hidden>
+          <h2 class="lesson-heading" id="quizHeading3">
+            Detective Challenge 3
+          </h2>
+
+          <p class="lesson-intro">
+            Imagine you don't want an app to use your past video views to guess your interests.
+          </p>
+
+          <div class="quiz-card">
+            <h3 class="quiz-question">
+              What should you do?
+            </h3>
+
+
+            <div class="quiz-choices" id="quizChoices3">
+              <button class="quiz-choice quiz-choice3" data-answer="correct">
+                A. Pause or clear your watch history in the app's settings.
+              </button>
+
+              <button class="quiz-choice quiz-choice3" data-answer="wrong">
+                B. Turn off your phone's screen when you aren't using it.  
+              </button>
+
+              <button class="quiz-choice quiz-choice3" data-answer="wrong">
+                C. Restart your phone once a week. 
+              </button>
+            </div>
+
+            <div id="feedback3" role="status" aria-live="polite" hidden></div>
+          </div>
+
+          <div id="quizExtraActions3" style="display:grid; gap:10px; margin-top:16px;">
+            <button id="continueQuizButton3" class="reply-button primary" type="button" hidden>
+              Continue chat →
+            </button>
+
+            <button id="showAnswerButton3" class="reply-button" type="button">
+              Skip, show me the answer
+            </button>
+          </div>
         </section>
 
         <div class="date-divider" id="finalDateDivider" hidden></div>
@@ -207,6 +292,8 @@
     const afterGameMessages = document.getElementById("afterGameMessages");
     let afterGame = false; // true while Sam reacts to a finished race
     const lesson = document.querySelector(".lesson");
+    const lesson2 = document.getElementById("lesson2");
+    const lesson3 = document.getElementById("lesson3");
 
     let conversationStarted = false;
     let waitingForChoice = false;
@@ -261,6 +348,8 @@
 
     // Keep the quiz hidden until the conversation reaches it.
     lesson.hidden = true;
+    lesson2.hidden = true;
+    lesson3.hidden = true;
 
     // Hide the typing indicator until Sam starts composing a message.
     typingIndicator.hidden = true;
@@ -390,8 +479,8 @@
     async function firstConversationStage() {
       setConversationPhase("first-response");
       await samReplies([
-        'I read apps can figure out things about people from their <strong>online activity</strong>.',
-        'Like, they might use what you <strong>watch</strong> or <strong>search</strong> for to make predictions about your interests.'
+        'Did you know apps are constantly making crazy guesses about us based on what we do online? It\'s kind of wild...',
+        'Like, they might use what you <strong>watch</strong> or <strong>search</strong> for to make guesses about your interests.'
       ]);
       // samReplies() displays the options when Sam finishes.
     }
@@ -415,8 +504,8 @@
     async function explainPredictions() {
       setConversationPhase("challenge-options");
       await samReplies([
-        "Yep! They're <strong>predictions</strong>, not necessarily facts. But it got me thinking about how much our activity can reveal.",
-        "Want to try a little <strong>detective challenge</strong>?"
+        "Yep! They're <strong>guesses</strong>, not necessarily facts. But it got me thinking about how much our activity can reveal...",
+        "Want to try this <strong>detective challenge</strong> I've found?"
       ]);
 
       showChallengeOptions();
@@ -426,9 +515,9 @@
     async function explainPatterns() {
       setConversationPhase("challenge-options");
       await samReplies([
-        "For example, if you often watch <strong>hiking videos</strong>, an app may predict that you're interested in outdoor activities.",
-        "These are predictions based on <strong>patterns</strong>, not necessarily facts.",
-        "Want to try a little <strong>detective challenge</strong>?"
+        "For example, if you often watch budget recipes or loan applications, an app may guess that you're in finantial distress.",
+        "These are guesses based on your habits - <strong>they don't know for sure</strong>.",
+        "Want to try the <strong>detective challenge</strong>?"
       ]);
 
       showChallengeOptions();
@@ -452,9 +541,9 @@
     async function giveExample() {
       setConversationPhase("example-options");
       await samReplies([
-        "Imagine you watch lots of baking videos, save cake recipes, and follow baking accounts.",
-        "An app might use those patterns to predict that you enjoy baking, even if you never told it directly."
-      ]);
+        "Imagine you search for flights, compare hotel options, and check train schedules for a specific weekend.",
+        "An app might use those patterns to guess the exact dates you will be away from home, even if you never told it directly."
+     ]);
 
       showOptions([
         {
@@ -470,7 +559,8 @@
       ]);
     }
 
-    async function openQuiz() {
+
+     async function openQuiz() {
       conversationFinished = true;
       setConversationPhase("quiz");
 
@@ -482,7 +572,7 @@
 
       dateDivider.hidden = false;
       lesson.hidden = false;
-
+      lesson2.hidden = true;
       replyPanel.hidden = true;
       scrollToLatest();
 
@@ -516,6 +606,8 @@
       // Wait until Sam has finished both messages before offering replies.
       handleFirstResponse();
     });
+
+    
 
     // Sam sends the summary as a document, then the chat carries on as usual.
     async function sendSummary(request, reply) {
@@ -555,10 +647,20 @@
     });
 
     // Quiz interaction.
-    const quizChoices = document.querySelectorAll(".quiz-choice");
+    const quizChoices = document.querySelectorAll("#quizChoices .quiz-choice");
     const feedback = document.getElementById("feedback");
     const quizExtraActions = document.getElementById("quizExtraActions");
     const showAnswerButton = document.getElementById("showAnswerButton");
+
+    const quizChoices2 = document.querySelectorAll("#quizChoices2 .quiz-choice");
+    const feedback2 = document.getElementById("feedback2");
+    const showAnswerButton2 = document.getElementById("showAnswerButton2");
+    const continueQuizButton2 = document.getElementById("continueQuizButton2");
+
+    const quizChoices3 = document.querySelectorAll("#quizChoices3 .quiz-choice");
+    const feedback3 = document.getElementById("feedback3");
+    const showAnswerButton3 = document.getElementById("showAnswerButton3");
+    const continueQuizButton3 = document.getElementById("continueQuizButton3");
 
     // A finished quiz stays in the chat, answered, so the right answer can be looked at again.
     function showQuizDone() {
@@ -578,7 +680,7 @@
       }
 
       // use addMessage now - it will auto-route to postQuizMessages
-      addMessage("That's insightful, thanks!", "sent");
+      addMessage("Makes sense, thanks!", "sent");
       
       await wait(1000);
       startAgencyTeaching();
@@ -589,15 +691,15 @@
     async function startAgencyTeaching() {
       setConversationPhase("agency-intro");
       await samReplies([
-        "We can control what clues we leave. I found 3 quick things that help me."
+        "We can actually control some of the clues we leave behind! Wanna know three ways I usually do that?"
       ]);
-      showOptions([{ label: "Show me", action: teachTip1 }]);
+      showOptions([{ label: "Show me!", action: teachTip1 }]);
     }
 
     async function teachTip1() {
       setConversationPhase("agency-tip1");
       await samReplies([
-        "1. Check: apps have <strong>privacy / history settings</strong>. You can see everything they saved about you there.",
+        "Take a peek at your <strong>privacy settings</strong>. Most apps have a settings page where you can see the exact list of interests the app has guessed about you.",
       ]);
       showOptions([{ label: "Okay", action: teachTip2 }]);
     }
@@ -605,15 +707,15 @@
     async function teachTip2() {
       setConversationPhase("agency-tip2");
       await samReplies([
-        "2. Pause / Clear: you can <strong>pause</strong> watch history or <strong>clear</strong> searches.",
+        "<strong>Pause</strong> watch history or <strong>clear</strong> searches.",
       ]);
-      showOptions([{ label: "Got it", action: teachTip3 }]);
+      showOptions([{ label: "What's the third one?", action: teachTip3 }]);
     }
 
     async function teachTip3() {
       setConversationPhase("agency-tip3");
       await samReplies([
-        "3. <strong>Incognito</strong>: use it when you explore stuff you don't want saved. It doesn't make you invisible, though."
+        "Use <strong>Incognito Mode</strong> when you explore stuff you don't want saved. Keep in mind it doesn't make you invisible, though."
       ]);
       showOptions([{ label: "Makes sense", action: teachWrapUp }]);
     }
@@ -642,8 +744,8 @@
       afterGame = true;
       afterGameMessages.after(typingIndicatorPost); // typing dots show below the game too
       await samReplies([result === "won"
-        ? "You won the horse race! Those privacy tips are sticking. Thanks for chatting with me!"
-        : "You played the horse race! The trackers won this time, but you can play again whenever you want. Thanks for chatting with me!"]);
+        ? "Nice, you won the horse race! Speak soon!"
+        : "You played the horse race! The trackers won this time, but you can play again whenever you want. Speak soon!"]);
       showEndOptions();
     }
 
@@ -662,9 +764,19 @@
     // Same pattern as every quiz: answer or skip, see the answer, then "Continue chatting →".
     const continueQuizButton = document.getElementById("continueQuizButton");
     const quizFeedback = {
-      correct: "Exactly! Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them.",
-      incorrect: "Not quite, and that's okay! The answer is B. Your online activity can give apps clues about your interests.",
-      shown: "The answer is B. Apps can use patterns in your activity to predict your interests, even if you never explicitly tell them."
+      correct: "Exactly! Apps can use patterns in your activity to guess your interests, even if you never explicitly tell them.",
+      incorrect: "Not quite! Even without you typing it directly, apps use your watch history to guess what you like.",
+      shown: "The answer is B. Apps don't need you to tell them directly—they use your activity patterns to guess your interests."
+    };
+    const quizFeedback2 = {
+      correct: "Exactly! There's an incognito mode in most browsers. Look for it and use it when you want to keep your activity hidden from anyone picking up your phone, but websites still know you visited them.",
+      incorrect: "Not quite! Incognito stops your phone from saving your history, but it doesn't make you invisible to the websites you visit.",
+      shown: "The answer is A. There's an incognito mode in most browsers. Look for it and use it when you want to keep your activity hidden from anyone picking up your phone, but websites still know you visited them."
+    };
+    const quizFeedback3 = {
+      correct: "That's it! Clearing or pausing your history wipes the clues the app uses to guess your interests.",
+      incorrect: "Not quite! To stop apps from using old activity, head into settings to pause or clear your history.",
+      shown: "The answer is A. Clearing or pausing your history wipes the clues the app uses to guess your interests."
     };
     function showQuizResult(result) {
       quizAnswer = result;
@@ -682,6 +794,25 @@
       }
       saveConversationState();
     }
+
+    function showQuizResult2(result) {
+      feedback2.hidden = false;
+      feedback2.textContent = quizFeedback2[result];
+
+      quizChoices2.forEach((button) => {
+        button.disabled = true;
+
+        if (button.dataset.answer === "correct") {
+          button.classList.add("correct-answer");
+        }
+      });
+
+      showAnswerButton2.hidden = true;
+      continueQuizButton2.hidden = false;
+
+      saveConversationState();
+    }
+
     showAnswerButton.addEventListener("click", () => { Tools.snapshot(conversationStorageKey); showQuizResult("shown"); });
     quizChoices.forEach((choice) => {
       choice.addEventListener("click", () => {
@@ -689,7 +820,100 @@
         showQuizResult(choice.dataset.answer === "correct" ? "correct" : "incorrect");
       });
     });
-    continueQuizButton.addEventListener("click", sendFinalInsight);
+
+    continueQuizButton.addEventListener("click", () => {
+
+      lesson2.hidden = false;
+
+      continueQuizButton.hidden = true;
+
+      lesson2.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+    });
+
+    showAnswerButton2.addEventListener("click", () => {
+      showQuizResult2("shown");
+    });
+
+  quizChoices2.forEach((choice) => {
+    choice.addEventListener("click", () => {
+
+      const result =
+        choice.dataset.answer === "correct"
+          ? "correct"
+          : "incorrect";
+
+      showQuizResult2(result);
+
+    });
+  });
+
+  continueQuizButton2.addEventListener("click", () => {
+
+    lesson3.hidden = false;
+    continueQuizButton2.hidden = true;
+
+    lesson3.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  });
+
+
+  function showQuizResult3(result) {
+      feedback3.hidden = false;
+      feedback3.textContent = quizFeedback3[result];
+
+      quizChoices3.forEach((button) => {
+        button.disabled = true;
+
+        if (button.dataset.answer === "correct") {
+          button.classList.add("correct-answer");
+        }
+      });
+
+      showAnswerButton3.hidden = true;
+      continueQuizButton3.hidden = false;
+
+      saveConversationState();
+    }
+
+    continueQuizButton3.addEventListener("click", () => {
+
+      lesson3.hidden = false;
+
+      continueQuizButton3.hidden = true;
+
+      lesson3.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+    });
+
+    showAnswerButton3.addEventListener("click", () => {
+      showQuizResult3("shown");
+    });
+
+  quizChoices3.forEach((choice) => {
+    choice.addEventListener("click", () => {
+
+      const result =
+        choice.dataset.answer === "correct"
+          ? "correct"
+          : "incorrect";
+
+      showQuizResult3(result);
+
+    });
+  });
+
+  continueQuizButton3.addEventListener("click", () => {
+    sendFinalInsight();
+  });
 
     // Restore the saved conversation and return to the matching choice point.
     function restoreConversation() {
@@ -745,6 +969,8 @@
         conversationFinished = true;
         dateDivider.hidden = false;
         lesson.hidden = false;
+        lesson2.hidden = true;
+        lesson3.hidden = true;
         if (state.quizAnswer) showQuizResult(state.quizAnswer);
         if (finalFollowUpSent) showQuizDone();
         if (finalDateDivider) {

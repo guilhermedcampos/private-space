@@ -676,6 +676,8 @@ input:focus-visible {
 .quiz-choice:hover:not(:disabled) { border-color: #5b8aff; background: #e9efff; transform: translateY(-1px); box-shadow: 0 6px 16px #5b7cff22; }
 .quiz-choice.correct-answer { border: 2px solid #22c55e; background: #dcfce7; color: #166534; }
 #feedback, .quiz-feedback { margin-top: 14px; padding: 14px; background: #e6f0ff; border-left: 4px solid #4aa8ff; border-radius: 12px; color: #1e3a5f; font-size: 13px; line-height: 1.6; font-weight: 600; }
+#feedback2, .quiz-feedback2 { margin-top: 14px; padding: 14px; background: #e6f0ff; border-left: 4px solid #4aa8ff; border-radius: 12px; color: #1e3a5f; font-size: 13px; line-height: 1.6; font-weight: 600; }
+#feedback3, .quiz-feedback3 { margin-top: 14px; padding: 14px; background: #e6f0ff; border-left: 4px solid #4aa8ff; border-radius: 12px; color: #1e3a5f; font-size: 13px; line-height: 1.6; font-weight: 600; }
 .back-to-messages { display: block; margin: 24px 0 8px; color: #667cc9; font-size: 13px; font-weight: 800; text-align: center; }
 .back-to-messages:hover { color: #4b60b6; }
 
