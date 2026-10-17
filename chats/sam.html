@@ -105,6 +105,11 @@
           </p>
 
           <div class="quiz-card">
+            <div class="quiz-nav">
+              <button class="quiz-arrow" type="button" data-quiz-prev aria-label="Previous question">‹</button>
+              <p class="quiz-label">Question 1 of 3</p>
+              <button class="quiz-arrow" type="button" data-quiz-next aria-label="Next question">›</button>
+            </div>
             <h3 class="quiz-question">
               What could an app guess from this activity?
             </h3>
@@ -126,7 +131,7 @@
 
           <!-- Skipping a question always shows its answer (same in every quiz) -->
           <div id="quizExtraActions" style="display: grid; gap: 10px; margin-top: 16px;">
-            <button id="continueQuizButton" class="reply-button primary" type="button" hidden>Continue quiz →</button>
+            <button id="continueQuizButton" class="reply-button primary" type="button" hidden>Next question →</button>
             <button id="showAnswerButton" class="reply-button" type="button">Skip, show me the answer</button>
           </div>
 
@@ -134,7 +139,7 @@
 
         <section id="lesson2" class="lesson" aria-labelledby="quizHeading2" hidden>
           <h2 class="lesson-heading" id="quizHeading2">
-            Detective Challenge 2
+            Detective Challenge
           </h2>
 
           <p class="lesson-intro">
@@ -142,6 +147,11 @@
           </p>
 
           <div class="quiz-card">
+            <div class="quiz-nav">
+              <button class="quiz-arrow" type="button" data-quiz-prev aria-label="Previous question">‹</button>
+              <p class="quiz-label">Question 2 of 3</p>
+              <button class="quiz-arrow" type="button" data-quiz-next aria-label="Next question">›</button>
+            </div>
             <h3 class="quiz-question">
               What actually happens when you browse in Incognito mode?
             </h3>
@@ -165,7 +175,7 @@
 
           <div id="quizExtraActions2" style="display:grid; gap:10px; margin-top:16px;">
             <button id="continueQuizButton2" class="reply-button primary" type="button" hidden>
-              Continue quiz →
+              Next question →
             </button>
 
             <button id="showAnswerButton2" class="reply-button" type="button">
@@ -176,7 +186,7 @@
 
         <section id="lesson3" class="lesson" aria-labelledby="quizHeading3" hidden>
           <h2 class="lesson-heading" id="quizHeading3">
-            Detective Challenge 3
+            Detective Challenge
           </h2>
 
           <p class="lesson-intro">
@@ -184,6 +194,11 @@
           </p>
 
           <div class="quiz-card">
+            <div class="quiz-nav">
+              <button class="quiz-arrow" type="button" data-quiz-prev aria-label="Previous question">‹</button>
+              <p class="quiz-label">Question 3 of 3</p>
+              <button class="quiz-arrow" type="button" data-quiz-next aria-label="Next question">›</button>
+            </div>
             <h3 class="quiz-question">
               What should you do?
             </h3>
@@ -208,7 +223,7 @@
 
           <div id="quizExtraActions3" style="display:grid; gap:10px; margin-top:16px;">
             <button id="continueQuizButton3" class="reply-button primary" type="button" hidden>
-              Continue chat →
+              Continue chatting →
             </button>
 
             <button id="showAnswerButton3" class="reply-button" type="button">
@@ -303,6 +318,9 @@
     let finalFollowUpSent = false; // <- moved to top
     let summaryShared = false; // learner asked for the summary at the start
     let gameSkipped = false;
+    let quizResults = [null, null, null];
+    let quizView = 0;
+    let quizCurrent = 0;
     let quizAnswer = null;     // "correct", "incorrect", or "shown" (skipped)   // learner chose the summary instead of the horse race
     function isPostQuiz() { return finalFollowUpSent || conversationPhase.startsWith("agency"); }
 
@@ -331,6 +349,9 @@
         sender: m.classList.contains("sent") ? "sent" : "received"
       }));
       state.quizAnswer = quizAnswer;
+      state.quizResults = quizResults;
+      state.quizView = quizView;
+      state.quizCurrent = quizCurrent;
       state.finished = conversationPhase === "agency-done"; // shown as "✓ Finished" in Messages
       state.afterGameMessages = [...afterGameMessages.children].map((m) => ({
         text: m.innerHTML,
@@ -573,6 +594,7 @@
       dateDivider.hidden = false;
       lesson.hidden = false;
       lesson2.hidden = true;
+      showQuizView(0);
       replyPanel.hidden = true;
       scrollToLatest();
 
@@ -664,7 +686,9 @@
 
     // A finished quiz stays in the chat, answered, so the right answer can be looked at again.
     function showQuizDone() {
-      if (quizExtraActions) quizExtraActions.hidden = true;
+      quizSkips.forEach(button => { button.hidden = true; });
+      quizContinues.forEach(button => { button.hidden = true; });
+      saveConversationState();
     }
 
     async function sendFinalInsight() {
@@ -778,142 +802,61 @@
       incorrect: "Not quite! To stop apps from using old activity, head into settings to pause or clear your history.",
       shown: "The answer is A. Clearing or pausing your history wipes the clues the app uses to guess your interests."
     };
-    function showQuizResult(result) {
-      quizAnswer = result;
-      feedback.hidden = false;
-      feedback.textContent = quizFeedback[result];
-      quizChoices.forEach((button) => {
-        button.disabled = true;
-        if (button.dataset.answer === "correct") button.classList.add("correct-answer");
+    const quizLessons = [lesson, lesson2, lesson3];
+    const quizButtons = [quizChoices, quizChoices2, quizChoices3];
+    const quizFeedbackElements = [feedback, feedback2, feedback3];
+    const quizExplanations = [quizFeedback, quizFeedback2, quizFeedback3];
+    const quizSkips = [showAnswerButton, showAnswerButton2, showAnswerButton3];
+    const quizContinues = [continueQuizButton, continueQuizButton2, continueQuizButton3];
+
+    function showQuizView(index, focus = true) {
+      quizView = index;
+      const latest = quizCurrent;
+      quizLessons.forEach((section, i) => {
+        section.hidden = i !== index;
+        const result = quizResults[i];
+        section.querySelector("[data-quiz-prev]").disabled = i === 0;
+        section.querySelector("[data-quiz-next]").disabled = i >= latest;
+        quizButtons[i].forEach(button => {
+          button.disabled = !!result;
+          button.classList.toggle("correct-answer", !!result && button.dataset.answer === "correct");
+        });
+        quizFeedbackElements[i].hidden = !result;
+        quizFeedbackElements[i].textContent = result ? quizExplanations[i][result] : "";
+        quizSkips[i].hidden = !!result || finalFollowUpSent;
+        quizContinues[i].hidden = !result || i !== latest || finalFollowUpSent;
       });
-      showAnswerButton.hidden = true;
-      continueQuizButton.hidden = finalFollowUpSent;
-      if (!finalFollowUpSent) {
-        continueQuizButton.focus({ preventScroll: true });
-        scrollToLatest(); // bring the answer and "Continue chatting" into view
+      saveConversationState();
+      if (focus) {
+        const target = !quizContinues[index].hidden ? quizContinues[index] : quizLessons[index].querySelector(".quiz-question");
+        target.setAttribute("tabindex", "-1");
+        target.focus({ preventScroll: true });
+        quizLessons[index].scrollIntoView({ block: "nearest" });
       }
-      saveConversationState();
     }
 
-    function showQuizResult2(result) {
-      feedback2.hidden = false;
-      feedback2.textContent = quizFeedback2[result];
-
-      quizChoices2.forEach((button) => {
-        button.disabled = true;
-
-        if (button.dataset.answer === "correct") {
-          button.classList.add("correct-answer");
-        }
-      });
-
-      showAnswerButton2.hidden = true;
-      continueQuizButton2.hidden = false;
-
-      saveConversationState();
-    }
-
-    showAnswerButton.addEventListener("click", () => { Tools.snapshot(conversationStorageKey); showQuizResult("shown"); });
-    quizChoices.forEach((choice) => {
-      choice.addEventListener("click", () => {
+    quizLessons.forEach((section, i) => {
+      section.querySelector("[data-quiz-prev]").addEventListener("click", () => showQuizView(i - 1));
+      section.querySelector("[data-quiz-next]").addEventListener("click", () => showQuizView(i + 1));
+      const answer = result => {
+        if (quizResults[i] || finalFollowUpSent) return;
         Tools.snapshot(conversationStorageKey);
-        showQuizResult(choice.dataset.answer === "correct" ? "correct" : "incorrect");
-      });
-    });
-
-    continueQuizButton.addEventListener("click", () => {
-
-      lesson2.hidden = false;
-
-      continueQuizButton.hidden = true;
-
-      lesson2.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
-    });
-
-    showAnswerButton2.addEventListener("click", () => {
-      showQuizResult2("shown");
-    });
-
-  quizChoices2.forEach((choice) => {
-    choice.addEventListener("click", () => {
-
-      const result =
-        choice.dataset.answer === "correct"
-          ? "correct"
-          : "incorrect";
-
-      showQuizResult2(result);
-
-    });
-  });
-
-  continueQuizButton2.addEventListener("click", () => {
-
-    lesson3.hidden = false;
-    continueQuizButton2.hidden = true;
-
-    lesson3.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  });
-
-
-  function showQuizResult3(result) {
-      feedback3.hidden = false;
-      feedback3.textContent = quizFeedback3[result];
-
-      quizChoices3.forEach((button) => {
-        button.disabled = true;
-
-        if (button.dataset.answer === "correct") {
-          button.classList.add("correct-answer");
+        quizResults[i] = result;
+        quizAnswer = quizResults[0];
+        showQuizView(i);
+      };
+      quizButtons[i].forEach(button => button.addEventListener("click", () => answer(button.dataset.answer === "correct" ? "correct" : "incorrect")));
+      quizSkips[i].addEventListener("click", () => answer("shown"));
+      quizContinues[i].addEventListener("click", () => {
+        if (!quizResults[i] || finalFollowUpSent) return;
+        Tools.snapshot(conversationStorageKey);
+        if (i < 2) {
+          quizCurrent = i + 1;
+          showQuizView(quizCurrent);
         }
+        else sendFinalInsight();
       });
-
-      showAnswerButton3.hidden = true;
-      continueQuizButton3.hidden = false;
-
-      saveConversationState();
-    }
-
-    continueQuizButton3.addEventListener("click", () => {
-
-      lesson3.hidden = false;
-
-      continueQuizButton3.hidden = true;
-
-      lesson3.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
     });
-
-    showAnswerButton3.addEventListener("click", () => {
-      showQuizResult3("shown");
-    });
-
-  quizChoices3.forEach((choice) => {
-    choice.addEventListener("click", () => {
-
-      const result =
-        choice.dataset.answer === "correct"
-          ? "correct"
-          : "incorrect";
-
-      showQuizResult3(result);
-
-    });
-  });
-
-  continueQuizButton3.addEventListener("click", () => {
-    sendFinalInsight();
-  });
 
     // Restore the saved conversation and return to the matching choice point.
     function restoreConversation() {
@@ -971,7 +914,13 @@
         lesson.hidden = false;
         lesson2.hidden = true;
         lesson3.hidden = true;
-        if (state.quizAnswer) showQuizResult(state.quizAnswer);
+        quizResults = Array.isArray(state.quizResults) ? state.quizResults.slice(0, 3) : [state.quizAnswer || null, null, null];
+        if (finalFollowUpSent && !state.quizResults) quizResults = [state.quizAnswer || "shown", "shown", "shown"];
+        quizAnswer = quizResults[0];
+        const available = quizResults.findIndex(result => !result);
+        const latest = available < 0 ? 2 : available;
+        quizCurrent = Number.isInteger(state.quizCurrent) ? Math.max(0, Math.min(state.quizCurrent, latest)) : latest;
+        showQuizView(Number.isInteger(state.quizView) ? Math.max(0, Math.min(state.quizView, quizCurrent)) : quizCurrent, false);
         if (finalFollowUpSent) showQuizDone();
         if (finalDateDivider) {
           finalDateDivider.textContent = "Today";

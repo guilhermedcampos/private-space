@@ -794,3 +794,9 @@ input:focus-visible {
 /* Game invite: "Play" and "Skip" look the same, like every other choice in the chats */
 a.reply-button { text-decoration: none; }
 .game-play { margin-bottom: 14px; }
+
+/* Shared detective challenge navigation. */
+.quiz-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.quiz-nav .quiz-label { margin: 0; }
+.quiz-arrow { width: 32px; height: 32px; padding: 0; border: 1px solid #dce4f3; border-radius: 50%; background: #fff; color: #425671; font: 900 18px/1 inherit; cursor: pointer; box-shadow: none; }
+.quiz-arrow:disabled { opacity: .35; cursor: default; }
