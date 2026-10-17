@@ -515,7 +515,7 @@
     async function explainPatterns() {
       setConversationPhase("challenge-options");
       await samReplies([
-        "For example, if you often watch budget recipes or loan applications, an app may guess that you're in finantial distress.",
+        "For example, if you often watch budget recipes or loan applications, an app may guess that you're in financial distress.",
         "These are guesses based on your habits - <strong>they don't know for sure</strong>.",
         "Want to try the <strong>detective challenge</strong>?"
       ]);
@@ -745,7 +745,7 @@
       afterGameMessages.after(typingIndicatorPost); // typing dots show below the game too
       await samReplies([result === "won"
         ? "Nice, you won the horse race! Speak soon!"
-        : "You played the horse race! The trackers won this time, but you can play again whenever you want. Speak soon!"]);
+        : "You played the horse race! The computer racers won this time, but you can play again whenever you want. Speak soon!"]);
       showEndOptions();
     }
 
