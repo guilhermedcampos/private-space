@@ -277,7 +277,7 @@
         bubble.textContent = `✓ ${text.slice(7, -2)} done`;
       } else bubble.innerHTML = formatText(text);
       messages.appendChild(bubble);
-      if (sender === "received" && text.startsWith("Yes! You can **delete cookies** in your browser settings.")) renderVideoGuide();
+      if (sender === "received" && text.includes("You can **delete cookies** in your browser settings.")) renderVideoGuide();
       scrollToLatest();
     }
 
